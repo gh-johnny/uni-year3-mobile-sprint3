@@ -29,6 +29,14 @@ export class AnomalyDetector {
     private readonly minSample = 8,
   ) {}
 
+  /**
+   * Finds segments (dealers, models…) whose Service Share is a statistical outlier.
+   * Segments below `minSample` vehicles are ignored, and fewer than 3 eligible segments
+   * yield no verdict (a z-score over so few peers means nothing).
+   *
+   * @param segments - One breakdown dimension, e.g. `calculator.breakdown('dealer', …)`.
+   * @returns Outliers with |z| ≥ `threshold`, most extreme first. `deltaPoints` is the gap to the peer mean.
+   */
   segments(segments: readonly ShareSegment[]): SegmentAnomaly[] {
     const eligible = segments.filter((segment) => segment.denominator >= this.minSample);
     if (eligible.length < 3) return [];
@@ -51,7 +59,12 @@ export class AnomalyDetector {
       .sort((a, b) => Math.abs(b.zScore) - Math.abs(a.zScore));
   }
 
-  /** Compares the latest month-over-month change with the historical changes. */
+  /**
+   * Compares the latest month-over-month change with the historical ones.
+   *
+   * @param points - Trend oldest → newest (at least 4 points).
+   * @returns The break (month, z-score, delta in points), or `null` when the latest move is normal.
+   */
   trendBreak(points: readonly TrendPoint[]): TrendAnomaly | null {
     if (points.length < 4) return null;
     const deltas = points.slice(1).map((point, index) => point.share.points - (points[index] as TrendPoint).share.points);

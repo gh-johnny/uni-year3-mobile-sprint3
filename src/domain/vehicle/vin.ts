@@ -28,12 +28,26 @@ type VinProps = { value: string };
  *
  * The check digit (position 9) is only mandatory in North America, so an otherwise
  * well-formed VIN is accepted and `hasValidCheckDigit()` is exposed as extra trust signal.
+ *
+ * @example
+ * const vin = Vin.create('9bf zzz540 pb 123456').value;  // whitespace/dashes/case are normalised
+ * vin.value;               // '9BFZZZ540PB123456'
+ * vin.isFord();            // true  (WMI '9BF')
+ * vin.assemblyCountry();   // 'BR'
+ * vin.modelYear(2026);     // 2023  (10th character 'P')
  */
 export class Vin extends ValueObject<VinProps> {
   private constructor(props: VinProps) {
     super(props);
   }
 
+  /**
+   * Parses and validates user/scanner input.
+   *
+   * @param raw - Anything typed or scanned; case, spaces and dashes are ignored.
+   * @returns `ok(Vin)`, or `fail('vin.length')` (not 17 chars) / `fail('vin.characters')`
+   *          (contains I, O or Q, or a non-alphanumeric character).
+   */
   static create(raw: string): Result<Vin> {
     const value = Vin.normalize(raw);
     if (value.length !== 17) return Result.fail('vin.length', { length: value.length });
@@ -55,6 +69,13 @@ export class Vin extends ValueObject<VinProps> {
     return raw.toUpperCase().replace(/[\s-]/g, '');
   }
 
+  /**
+   * ISO 3779 check digit: Σ(transliterated char × position weight) mod 11, where a remainder
+   * of 10 is written `X`. Position 9 itself has weight 0, so its current content is irrelevant.
+   *
+   * @param value - A normalised 17-character VIN.
+   * @returns `'0'..'9'` or `'X'`.
+   */
   static computeCheckDigit(value: string): string {
     const sum = [...value].reduce((total, char, index) => {
       const digit = /\d/.test(char) ? Number(char) : (TRANSLITERATION[char] as number);
@@ -65,6 +86,12 @@ export class Vin extends ValueObject<VinProps> {
   }
 
   /** Builds a VIN whose position 9 carries the correct ISO 3779 check digit. */
+  /**
+   * Fixture/seed helper: fills position 9 with the right check digit.
+   *
+   * @param sixteenCharsWithPlaceholder - 17 characters where position 9 is any placeholder (e.g. `0`).
+   * @throws {DomainError} `vin.corrupted` when the result is not a valid VIN shape.
+   */
   static withCheckDigit(sixteenCharsWithPlaceholder: string): Vin {
     const draft = Vin.normalize(sixteenCharsWithPlaceholder);
     const check = Vin.computeCheckDigit(draft);
@@ -83,19 +110,30 @@ export class Vin extends ValueObject<VinProps> {
     return this.props.value.slice(11);
   }
 
+  /** `true` when position 9 matches {@link Vin.computeCheckDigit}. Mandatory only in North America. */
   hasValidCheckDigit(): boolean {
     return this.props.value[8] === Vin.computeCheckDigit(this.props.value);
   }
 
+  /** `true` when the WMI (first three characters) is one of Ford's (see `FORD_WMI`). */
   isFord(): boolean {
     return this.wmi in FORD_WMI;
   }
 
+  /** @returns ISO country code of the assembly plant (`'BR'`, `'AR'`, `'US'`…), or `null` for a non-Ford WMI. */
   assemblyCountry(): string | null {
     return FORD_WMI[this.wmi] ?? null;
   }
 
-  /** Resolves the model year to the most recent 30-year cycle not after `referenceYear + 1`. */
+  /**
+   * Decodes the model year from the 10th character. The code repeats every 30 years, so the
+   * result is the most recent cycle that is not after `referenceYear + 1` (next model year).
+   *
+   * @param referenceYear - Usually the current year.
+   * @returns The model year, or `null` when the 10th character is not a year code.
+   * @example
+   * Vin.restore('9BFZZZ540PB123456').modelYear(2026);  // 2023
+   */
   modelYear(referenceYear: number): number | null {
     const index = YEAR_CODES.indexOf(this.props.value[9] as string);
     if (index < 0) return null;
@@ -104,7 +142,12 @@ export class Vin extends ValueObject<VinProps> {
     return year;
   }
 
-  /** `9BF·RB·12345` style grouping used across the UI. */
+  /**
+   * Human-friendly grouping used across the UI.
+   *
+   * @example
+   * Vin.restore('9BFZZZ540PB123456').formatted();  // '9BF ZZZ540 PB 123456'
+   */
   formatted(): string {
     const v = this.props.value;
     return `${v.slice(0, 3)} ${v.slice(3, 9)} ${v.slice(9, 11)} ${v.slice(11)}`;

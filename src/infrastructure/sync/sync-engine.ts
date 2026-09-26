@@ -47,6 +47,11 @@ export class SyncEngine {
     return this.gateway.name;
   }
 
+  /**
+   * Observes {@link SyncState}. The listener is called immediately with the current state.
+   *
+   * @returns An unsubscribe function (call it in `useEffect` cleanup).
+   */
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     listener(this.state);
@@ -55,17 +60,29 @@ export class SyncEngine {
     };
   }
 
+  /**
+   * Starts periodic draining (and drains once immediately). Calling it again restarts the timer.
+   *
+   * @param intervalMs - Period between runs (`EXPO_PUBLIC_SYNC_INTERVAL_MS`, default 15 s).
+   */
   start(intervalMs: number): void {
     this.stop();
     this.timer = setInterval(() => void this.sync(), intervalMs);
     void this.sync();
   }
 
+  /** Stops the periodic timer. In-flight pushes are allowed to finish. */
   stop(): void {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
   }
 
+  /**
+   * Feeds connectivity into the engine: offline pauses draining (state `offline`, changes stay
+   * safe in SQLite); the transition back online triggers an immediate drain.
+   *
+   * @param online - Latest reachability from `NetworkMonitor`.
+   */
   setOnline(online: boolean): void {
     const cameBack = online && !this.online;
     this.online = online;
@@ -73,11 +90,18 @@ export class SyncEngine {
     else if (cameBack) void this.sync();
   }
 
+  /** Re-reads the pending count from the outbox (after a local write or a data reset). */
   async refreshPending(): Promise<void> {
     this.update({ pending: await this.outbox.pendingCount() });
   }
 
-  /** Returns how many events were delivered in this run. */
+  /**
+   * Drains one batch ("Sync now" and the timer both call this). Never runs concurrently:
+   * overlapping calls share the in-flight promise. On failure each event is rescheduled with
+   * exponential backoff ({@link nextAttemptDelay}).
+   *
+   * @returns How many events were delivered in this run (0 when offline, idle or failed).
+   */
   sync(): Promise<number> {
     this.running ??= this.drain().finally(() => {
       this.running = null;

@@ -25,6 +25,10 @@ export class LogisticChurnModel implements ChurnModel {
   ) {}
 
   /** Coefficients calibrated on the synthetic fleet (see README → "Retention model"). */
+  /**
+   * The production coefficients, fitted on the synthetic fleet (see README → "Modelo de retenção").
+   * Only `connected` is protective (negative); every other feature pushes towards churn.
+   */
   static calibrated(): LogisticChurnModel {
     return new LogisticChurnModel(
       {
@@ -42,14 +46,33 @@ export class LogisticChurnModel implements ChurnModel {
     );
   }
 
+  /**
+   * Builds a model with custom coefficients — used by tests and by the ML sprint to swap the model.
+   *
+   * @param coefficients - β for every {@link ChurnFeature} plus the intercept.
+   * @param version - Label surfaced in the Radar ("logistic-retention@<version>").
+   */
   static withCoefficients(coefficients: LogisticCoefficients, version = 'custom'): LogisticChurnModel {
     return new LogisticChurnModel(coefficients, version);
   }
 
+  /**
+   * Logistic function σ(x) = 1 / (1 + e⁻ˣ), mapping log-odds to a probability.
+   *
+   * @example
+   * LogisticChurnModel.sigmoid(0);   // 0.5
+   */
   static sigmoid(logit: number): number {
     return 1 / (1 + Math.exp(-logit));
   }
 
+  /**
+   * Scores one customer/vehicle.
+   *
+   * @param features - Feature vector from `ChurnFeatureExtractor`.
+   * @returns A `RiskScore` whose `contributions` are the exact `βᵢ·xᵢ` log-odds terms — the
+   *          data behind the Lead sheet's "why this customer may leave".
+   */
   score(features: ChurnFeatures): RiskScore {
     const contributions = CHURN_FEATURES.map((feature) => ({
       feature,

@@ -127,7 +127,14 @@ export class Lead extends Entity<LeadProps> {
     return TRANSITIONS[this.props.status].includes(status);
   }
 
-  /** LGPD: marketing outreach requires consent. */
+  /**
+   * Registers an outreach attempt and moves the lead to `contacted`.
+   * LGPD: marketing contact requires the customer's consent.
+   *
+   * @param now - Instant of the contact.
+   * @returns `ok`, `fail('lead.noConsent')` without consent, or `fail('lead.invalidTransition')`
+   *          when the pipeline does not allow it from the current status (see {@link Lead.canMoveTo}).
+   */
   registerContact(now: Date): Result<void> {
     if (!this.props.consent) return Result.fail('lead.noConsent');
     return this.transition('contacted', now).map(() => {
@@ -136,6 +143,7 @@ export class Lead extends Entity<LeadProps> {
     });
   }
 
+  /** `new | contacted → scheduled`. Also done automatically when the owner books a service. */
   markScheduled(now: Date): Result<void> {
     return this.transition('scheduled', now);
   }

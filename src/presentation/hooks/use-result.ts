@@ -17,6 +17,22 @@ export type ResultState<T> = {
 /**
  * Runs a use case and tracks its `Result`. Re-runs when `deps` change and — the
  * local-first bit — silently whenever one of `invalidateOn` domain events fires.
+ *
+ * `status` is `'loading'` only until the first result; a later failed refresh keeps the
+ * previous `data` (stale-while-error) and just exposes `error`.
+ *
+ * @typeParam T - Payload of the use case's `Result`.
+ * @param load - Returns the use case promise, e.g. `() => useCases.getGarage.execute(user)`.
+ *               The latest closure is always used, so it may read fresh props/state.
+ * @param deps - Restart the load when these change (same contract as `useEffect`).
+ * @param options.invalidateOn - Domain events that trigger a silent reload.
+ * @returns `{ status, data, error, refreshing, reload }`; `reload()` drives pull-to-refresh.
+ *
+ * @example
+ * const garage = useResult(() => useCases.getGarage.execute(user), [user], {
+ *   invalidateOn: ['appointment.booked', 'vehicle.registered'],
+ * });
+ * if (!garage.data) return <QueryFallback state={garage} />;
  */
 export function useResult<T>(
   load: () => Promise<Result<T>>,

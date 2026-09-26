@@ -29,7 +29,15 @@ export class ListDealersNearby {
     private readonly deps: { dealers: DealerRepository; customers: CustomerRepository; location: LocationProvider },
   ) {}
 
-  /** Uses the GPS fix when allowed; falls back to the customer's home address. */
+  /**
+   * Ranks dealers by distance, with the bearing needed by the compass.
+   * Uses the GPS fix when allowed; falls back to the customer's home address.
+   *
+   * @param actor - The signed-in owner.
+   * @param filter - Optional `serviceType`: only dealers that offer it are listed.
+   * @returns `origin`, whether it came from `'gps'` or `'home'`, and the ranked dealers;
+   *          `fail('location.unavailable')` when neither source exists.
+   */
   async execute(actor: User, filter?: { serviceType?: ServiceTypeKey }): Promise<Result<NearbyDealers>> {
     const gps = await this.deps.location.current();
     const customer = actor.customerId ? await this.deps.customers.findById(actor.customerId) : null;
@@ -94,6 +102,14 @@ export type BookingRequest = {
 export class BookAppointment {
   constructor(private readonly deps: BookingDeps) {}
 
+  /**
+   * @param actor - The signed-in owner (needs `appointment:book`).
+   * @param request - Vehicle, dealer, service and start time (+ optional workshop notes).
+   * @returns The confirmed appointment, or one of: `auth.forbidden`, `booking.notYourVehicle`,
+   *          `dealer.notFound`, `booking.serviceUnavailable`, `booking.slotInPast`,
+   *          `booking.slotTaken` (dealer bays are full for the slot).
+   * @remarks Publishes `appointment.booked` on the event bus after the transaction commits.
+   */
   async execute(actor: User, request: BookingRequest): Promise<Result<Appointment>> {
     const allowed = authorize(actor, 'appointment:book');
     if (allowed.isFail()) return Result.fail(allowed.error);
@@ -162,11 +178,21 @@ export class BookAppointment {
   }
 }
 
+/**
+ * Cancels an owner's appointment and queues the `appointment.cancelled` outbox event.
+ * The domain only allows it up to {@link CANCELLATION_WINDOW_HOURS} hours before the slot.
+ */
 export class CancelAppointment {
   constructor(
     private readonly deps: Pick<BookingDeps, 'appointments' | 'outbox' | 'ids' | 'clock' | 'tx' | 'events'>,
   ) {}
 
+  /**
+   * @param actor - The signed-in owner (needs `appointment:cancel`).
+   * @param appointmentId - Id of one of the actor's own appointments.
+   * @returns The cancelled appointment, `appointment.notFound` (unknown or someone else's),
+   *          or `appointment.tooLateToCancel`.
+   */
   async execute(actor: User, appointmentId: string): Promise<Result<Appointment>> {
     const allowed = authorize(actor, 'appointment:cancel');
     if (allowed.isFail()) return Result.fail(allowed.error);

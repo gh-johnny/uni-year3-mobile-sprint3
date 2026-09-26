@@ -134,6 +134,17 @@ export class AppContainer {
     readonly env: Env,
   ) {}
 
+  /**
+   * Wires the whole graph and prepares the database: runs migrations, seeds the synthetic
+   * dataset on first launch (idempotent) and builds the sync engine with the right gateway
+   * (HTTP when `EXPO_PUBLIC_API_URL` is set, otherwise simulated).
+   *
+   * @param options - Adapters to inject. Production passes native ones (`bootstrap.ts`); tests pass
+   *                  `sql.js`, a fixed clock and a deterministic gateway (`test-utils`).
+   * @example
+   * const container = await AppContainer.create({ db, env, crypto, vault, location });
+   * const garage = await container.useCases.getGarage.execute(user);
+   */
   static async create(options: ContainerOptions): Promise<AppContainer> {
     const clock = options.clock ?? new SystemClock();
     const events = new EventBus();
@@ -161,7 +172,10 @@ export class AppContainer {
     return new SimulatedRemoteGateway(env.EXPO_PUBLIC_SIMULATED_FAILURE_RATE);
   }
 
-  /** Wipes and regenerates the synthetic dataset ("Reset demo data" in Settings). */
+  /**
+   * Wipes and regenerates the synthetic dataset ("Reset demo data" in Settings), refreshes the
+   * pending-sync counter and publishes `data.reset` so every screen reloads.
+   */
   async resetDemoData(): Promise<void> {
     await this.seeder.reset();
     await this.sync.refreshPending();

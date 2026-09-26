@@ -32,6 +32,17 @@ type DraftProps = {
 export class BookingDraft {
   private constructor(private readonly props: DraftProps) {}
 
+  /**
+   * Opens the wizard, skipping the steps already decided by the entry point
+   * (e.g. tapping an offer presets the service; "Book here" on Dealers presets the dealer).
+   *
+   * @param vehicleId - Vehicle being serviced.
+   * @param preset - Optional route params; an unknown `serviceType` is ignored.
+   * @example
+   * BookingDraft.start('veh-1').step;                                        // 'service'
+   * BookingDraft.start('veh-1', { serviceType: 'oil' }).step;                // 'dealer'
+   * BookingDraft.start('veh-1', { serviceType: 'oil', dealerId: 'd' }).step; // 'slot'
+   */
   static start(vehicleId: string, preset: { serviceType?: string; dealerId?: string } = {}): BookingDraft {
     const serviceType = preset.serviceType && (SERVICE_TYPE_KEYS as readonly string[]).includes(preset.serviceType) ? (preset.serviceType as ServiceTypeKey) : null;
     const dealerId = preset.dealerId ?? null;
@@ -90,6 +101,7 @@ export class BookingDraft {
     return this.copy({ notes: notes.slice(0, 280) });
   }
 
+  /** `true` when the current step has what it needs (service chosen, dealer chosen, slot chosen, valid request). */
   canAdvance(): boolean {
     switch (this.step) {
       case 'service':
@@ -103,15 +115,22 @@ export class BookingDraft {
     }
   }
 
+  /** @returns The draft on the next step, or the same instance if the step is incomplete or already the last. */
   next(): BookingDraft {
     return this.canAdvance() && !this.isLast ? this.copy({ step: this.props.step + 1 }) : this;
   }
 
+  /** @returns The draft on the previous step (choices are kept), or the same instance on the first step. */
   back(): BookingDraft {
     return this.isFirst ? this : this.copy({ step: this.props.step - 1 });
   }
 
-  /** Validated request, or `null` while the draft is incomplete. */
+  /**
+   * Validates the draft with `bookingSchema` (Zod).
+   *
+   * @returns The `BookingRequest` for `BookAppointment`, or `null` while anything is missing.
+   *          Blank notes become `null`; notes are capped at 280 characters.
+   */
   toRequest(): BookingRequest | null {
     const parsed = bookingSchema.safeParse({
       vehicleId: this.props.vehicleId,

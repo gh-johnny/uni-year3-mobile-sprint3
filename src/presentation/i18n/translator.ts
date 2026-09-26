@@ -31,14 +31,30 @@ export class Translator {
     private readonly dictionary: Dictionary,
   ) {}
 
+  /**
+   * Registers a dictionary (done once for `en` and `pt-BR` in `i18n/index.ts`).
+   * The `Dictionary` type forces pt-BR to have exactly the keys of `en` at compile time.
+   */
   static register(locale: Locale, dictionary: Dictionary): void {
     Translator.cache.set(locale, new Translator(locale, dictionary));
   }
 
+  /** @returns The translator for `locale`, falling back to English if it was never registered. */
   static for(locale: Locale): Translator {
     return Translator.cache.get(locale) ?? Translator.cache.get('en') ?? new Translator('en', en);
   }
 
+  /**
+   * Translates a dot-path key (checked by the compiler) and interpolates `{{param}}` placeholders.
+   * A numeric `count` param selects the `_one` / `_other` plural form.
+   *
+   * @param key - e.g. `'garage.vehicleCount'`.
+   * @param params - Values for placeholders; unknown placeholders are left as-is.
+   * @returns The text, or the key itself if it is missing at runtime.
+   * @example
+   * t('greeting.morning', { name: 'Ana' });          // 'Good morning, Ana' / 'Bom dia, Ana'
+   * t('garage.vehicleCount', { count: 2 });          // '2 vehicles' / '2 veículos'
+   */
   t(key: TranslationKey, params: TranslationParams = {}): string {
     const template = this.pluralTemplate(key, params.count) ?? this.lookup(key) ?? key;
     return Translator.interpolate(template, params);

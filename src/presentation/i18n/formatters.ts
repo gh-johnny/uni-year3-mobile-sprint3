@@ -36,7 +36,15 @@ export class Formatters {
     return `${this.number(points, fractionDigits)}%`;
   }
 
-  /** Signed percentage-point delta: `+6,4` / `-3.1`. */
+  /**
+   * Signed percentage-point delta with a true minus sign.
+   *
+   * @param delta - Difference in percentage points.
+   * @param fractionDigits - Decimal places (default 1).
+   * @example
+   * f.signedPoints(6.4);    // '+6.4'   (pt-BR: '+6,4')
+   * f.signedPoints(-3.14);  // '−3.1'
+   */
   signedPoints(delta: number, fractionDigits = 1): string {
     const sign = delta > 0 ? '+' : delta < 0 ? '−' : '';
     return `${sign}${this.number(Math.abs(delta), fractionDigits)}`;
@@ -104,7 +112,13 @@ export class Formatters {
     return `${hours}:${minutes}`;
   }
 
-  /** Human relative time: "in 3 days", "2 months ago", "today", "tomorrow". */
+  /**
+   * Human relative time, by calendar day (not by 24-hour blocks).
+   *
+   * @param target - The date being described.
+   * @param now - Reference instant (inject the app clock).
+   * @returns "Today" / "Tomorrow", "in 5 days" / "3 days ago" (< 45 days), else in months.
+   */
   relative(target: Date, now: Date): string {
     const t = this.translator;
     const days = Dates.daysBetween(Dates.startOfDay(now), Dates.startOfDay(target));

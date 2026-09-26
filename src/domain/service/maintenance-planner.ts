@@ -25,6 +25,23 @@ export class MaintenancePlanner {
   static readonly SOON_THRESHOLD = 0.8;
   static readonly OVERDUE_THRESHOLD = 1.1;
 
+  /**
+   * Forecasts the next scheduled maintenance.
+   *
+   * Two independent clocks are evaluated against the model's service interval — kilometres
+   * driven and months elapsed since the last maintenance (or since purchase, if none). `wear`
+   * is the larger of the two ratios; the due date projects the km clock forward using the
+   * vehicle's own average monthly usage and takes whichever clock expires first.
+   *
+   * @param vehicle - The vehicle (current odometer, average usage, purchase date).
+   * @param history - Service records; only this vehicle's maintenance is considered.
+   * @param now - Reference instant (inject a `Clock` value; never `new Date()` here).
+   * @returns Status, wear, due date/km and what is left on both clocks.
+   * @example
+   * const forecast = new MaintenancePlanner().forecast(vehicle, history, clock.now());
+   * forecast.status;        // 'soon'
+   * forecast.kmRemaining;   // 757
+   */
   forecast(vehicle: Vehicle, history: ServiceHistory, now: Date): MaintenanceForecast {
     const { serviceIntervalKm, serviceIntervalMonths } = vehicle.model;
     const last = history.forVehicle(vehicle.id).lastMaintenance();
@@ -54,6 +71,11 @@ export class MaintenancePlanner {
     };
   }
 
+  /**
+   * Buckets a wear ratio: `ok` < 0.8 ≤ `soon` < 1 ≤ `due` < 1.1 ≤ `overdue`.
+   *
+   * @param wear - 0 = just serviced, 1 = due now (see {@link MaintenanceForecast.wear}).
+   */
   static statusFor(wear: number): MaintenanceStatus {
     if (wear >= MaintenancePlanner.OVERDUE_THRESHOLD) return 'overdue';
     if (wear >= 1) return 'due';

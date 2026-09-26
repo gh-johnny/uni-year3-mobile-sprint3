@@ -21,6 +21,13 @@ export type DealersViewModel = { source: string; dealers: DealerCardViewModel[] 
 /**
  * Keeps a compass angle continuous: 359° → 1° becomes 359° → 361°, so a rotation
  * animation takes the short way round instead of spinning backwards.
+ *
+ * @param previous - The last unwrapped angle (may already be beyond 360°).
+ * @param next - New raw heading in [0, 360).
+ * @returns `next` shifted by whole turns so it is within ±180° of `previous`.
+ * @example
+ * unwrapAngle(350, 10);   // 370  (not 10, which would spin back 340°)
+ * unwrapAngle(10, 350);   // -10
  */
 export const unwrapAngle = (previous: number, next: number): number => {
   const delta = ((((next - previous + 180) % 360) + 360) % 360) - 180;
