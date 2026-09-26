@@ -22,6 +22,11 @@ Equipe (README/capa): João Marcelo Furtado Romero RM555199 · Matheus Rivera Mo
 - Tudo via design system (`src/presentation/design-system`), i18n EN + PT-BR, light/dark.
 - Meta: **cobertura ≥95%** (threshold global no `jest.config.js`) + `expo-doctor` verde.
 - Hook do ambiente bloqueia `rm -rf` → apagar arquivo a arquivo (`rm arquivo`, `rmdir`).
+- Hook `guard-docs-write` pode bloquear escrita de `.md` via Bash (sugere a skill `/ai-agents:doc-forge`, indisponível
+  aqui). Use `Write`/`Edit` nos docs; o usuário autorizou editar docs (2026-09-26).
+- **Não executar o fluxo real do pipeline** sem pedido explícito: nada de `git push`, `eas build`, `eas init`,
+  `eas workflow:run`. O usuário pediu só os arquivos (copiados/adaptados de `~/projects/work/troca`).
+- Nunca `pkill -f "<padrão>"`/`pgrep -f` com texto que apareça no próprio comando: mata o shell da ferramenta (exit 144). Use PID.
 
 ## 3. Estado atual (2026-09-26 — todas as fases P0–P12 fechadas)
 | Fase | Estado |
@@ -32,6 +37,18 @@ Equipe (README/capa): João Marcelo Furtado Romero RM555199 · Matheus Rivera Mo
 | P10 qualidade | ✅ `npm run verify` exit 0 · 348 testes · cobertura 99,3 / 95,9 / 99,4 / 99,5 (stmts/branches/funcs/lines) · `expo-doctor` 21/21 |
 | P11 APK | ✅ build **local (Gradle)**; `eas.json` (perfil `preview`) pronto, mas o **build EAS não foi executado** |
 | P12 README | ✅ com galeria (`docs/screenshots`) |
+| Pós-entrega: CI/CD | ✅ arquivos prontos e validados **estaticamente** (`actionlint`): `.github/workflows/ci.yml`, `.eas/workflows/{dev,production}.yml`, `eas.json` (perfis `development`/`preview`/`production`/`production-apk`). **Nunca executado** |
+| Pós-entrega: containers | ✅ `Dockerfile`, `compose.yml`, `Makefile`, `docker/mock-api/` — **executados e validados** (ver TODO, entrada "CI/CD + containers + JSDoc") |
+| Pós-entrega: JSDoc | ✅ 62 blocos em 16 arquivos (só comentários) |
+
+### Ponto exato onde paramos (2026-09-26)
+- Git: branches **`main`** (default) e **`develop`** (criada localmente, mesmo commit da `main`; sem divergência). **Nenhum remoto
+  configurado** e nada foi enviado. Árvore de trabalho limpa.
+- Repositório GitHub **ainda não existe/não está ligado**; portanto o pipeline nunca rodou e o `develop → main` nunca foi exercitado.
+- Nenhum build EAS foi disparado e `eas init` **não** foi executado (o `app.json` ainda não tem `extra.eas.projectId`).
+- Emulador e containers foram desligados; imagens Docker (~6 GB) ficaram no disco (`make docker-clean` remove).
+- O APK entregável existe **só localmente** em `dist/pitlane.apk` (gitignored). **Não rode `make clean`** antes de copiá-lo/subi-lo:
+  o alvo faz `rm -rf coverage dist dist-ci` e apagaria o APK. Ele é regenerável (`make apk-local`, ~20–30 min).
 
 APK entregável: `dist/pitlane.apk` (85 MB, arm64-v8a + x86_64, assinado com a chave de debug do template; `dist/` e `android/` estão no `.gitignore`).
 
@@ -43,10 +60,17 @@ Ver o log de evidências no fim do `TODO.md` (inclui os 5 defeitos que só o emu
 3. Recomendado: instalar o APK num **device físico** e conferir o que o emulador não cobre — leitura real do
    código de barras do VIN, seta da bússola girando com o magnetômetro e biometria.
 4. Gravar/roteirizar a demonstração (fluxos: Owner agenda → passe QR; Advisor vê Pulse/Radar → contata lead → outbox).
-5. **Ativar o CI/CD** (arquivos prontos, nunca executados): criar o repo no GitHub, branch `develop`, permissão
-   "Allow GitHub Actions to create and approve pull requests", secrets `EXPO_TOKEN` (+ `PR_BOT_TOKEN`), environments
-   `development`/`production`, branch protection e `eas init`. Checklist completo em README §11.
-6. Containers: `make help` (Docker/Compose/Makefile prontos e validados — README §12). `make ci-local` reproduz o pipeline localmente.
+5. **Ativar o CI/CD** (arquivos prontos, nunca executados), nesta ordem — checklist completo em README §11:
+   1. criar o repo no GitHub e `git remote add origin <url> && git push -u origin main develop`;
+   2. Settings → Actions: "Allow GitHub Actions to create and approve pull requests" (na org também);
+   3. secrets `EXPO_TOKEN` e `PR_BOT_TOKEN`; environments `development` e `production` (reviewers em prod);
+   4. branch protection em `develop` e `main` (checks `semantic branch name` e `verify (typecheck · lint · test · doctor · build)`);
+   5. `eas login` + `eas init` (vincula o `projectId`), depois `make eas-validate`;
+   6. teste de fumaça: `git switch -c feat/teste-pipeline develop`, commit, push → deve rodar `verify` e abrir PR → `develop`.
+   Só o passo 6 dispara o fluxo de verdade; `make eas-dev`/`make eas-prod` são *dry-run* sem `CONFIRM=1`.
+6. Containers: `make help` (README §12). `make ci-local` reproduz o pipeline localmente (infra + verify no container).
+7. Decisão em aberto: o build de **dev** do EAS é um APK interno *sem* `developmentClient`. Para um dev client de verdade:
+   `npx expo install expo-dev-client` + `developmentClient: true` no perfil `development` (lição do `troca`).
 
 ### Gotchas aprendidos nesta sessão
 - `expo prebuild` reescreve os scripts `android`/`ios` do `package.json` → `git checkout package.json` depois.
@@ -57,6 +81,9 @@ Ver o log de evidências no fim do `TODO.md` (inclui os 5 defeitos que só o emu
 - RNTL v14 é assíncrono em tudo: `await` em `render`, `renderHook`, `fireEvent`, `act`, `unmount` (sem `await` o `act` vaza).
 - Emulador headless: `emulator -avd pitlane -no-window -gpu swiftshader_indirect` com `ANDROID_AVD_HOME=~/.config/.android/avd`.
   `uiautomator dump` falha em telas com animação infinita (Radar) — use toques por coordenada nelas.
+- Docker: hadolint reprova o build também em `info` (usar `USER` numérico, `HEALTHCHECK`/`CMD` em forma exec); o `.dockerignore`
+  exclui `docker/`, `Makefile` e `docs/screenshots`; pastas montadas (`coverage/`, `dist/`) precisam existir antes (o Makefile faz `mkdir -p`).
+- PR aberto com `GITHUB_TOKEN` não dispara workflows — por isso o `PR_BOT_TOKEN`. `eas workflow:run` sem `--ref` envia o checkout local.
 
 ## 5. Mapa do código
 ```
@@ -76,7 +103,15 @@ src/
     navigation/floating-tab-bar headless tabs expo-router/ui com pílula flutuante
     features/                   auth, garage, booking, pass, history, dealers, vehicle, scan, pulse, radar, lead, settings, sync, showcase
   app/                          rotas Expo Router (finas, só re-export)
-  test-utils/                   createTestContainer (sql.js + crypto Node), fakes
+  test-utils/                   createTestContainer (sql.js + crypto Node), fakes (render.tsx, router-mock.ts)
+.github/workflows/ci.yml        pipeline: branch-name → verify → PR develop → build dev → PR main → build prod
+.eas/workflows/                 dev.yml (APK dev) e production.yml (AAB + APK); sem `on:` — disparados pelo CI
+eas.json                        perfis development / preview / production (aab) / production-apk
+Dockerfile · compose.yml        multi-stage (check, coverage, bundle-out, dev) · perfis tools/sync/reports
+Makefile                        `make help` — alvos locais (*-local) e dentro do container
+docker/mock-api/                API mock da outbox (POST /sync/events)
+scripts/branding.sh             SVG (assets/branding) → PNGs de ícone/splash
+docs/screenshots/               galeria do README
 ```
 Padrões: Clean/Hexagonal, Repository, Composition Root/DI por contexto, Static Factory (`create/restore/for`),
 Builder (`AppointmentBuilder`, test data builders), Specification, Strategy (`ChurnModel`), Observer
@@ -90,6 +125,10 @@ node node_modules/jest/bin/jest.js src           # testes (saída crua; `npx jes
 npm run test:cov             # cobertura com threshold 95% (passa: 99,3 / 95,9 / 99,4 / 99,5)
 npx expo-doctor
 npx expo export --platform android --output-dir <tmp>   # checa bundling
+make help                    # todos os atalhos (Docker/Compose/EAS)
+make ci-local                # actionlint + hadolint + compose + verify dentro do container (reproduz o pipeline)
+make test | verify | up      # testes / verify / Metro — dentro do container
+make apk-local               # APK release via prebuild + Gradle (JDK 17 + Android SDK)
 ```
 Gotchas: RNTL v14 é async e exige `test-renderer@~1.2.0` (React 19.2); TZ dos testes fixo em
 `America/Sao_Paulo`; TS 6 precisa de `types: ["jest","node"]`; importar i18n sempre de `@/presentation/i18n`

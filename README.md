@@ -388,7 +388,7 @@ Um build do EAS gera **um** formato por perfil (o `buildType`), por isso "AAB + 
 
 ### Configuração única (checklist antes do primeiro push)
 
-1. **Branches:** `main` como padrão; criar `develop` — `git switch -c develop && git push -u origin develop`.
+1. **Branches:** `main` como padrão. A `develop` já existe localmente (criada a partir da `main`); ao criar o repositório: `git remote add origin <url> && git push -u origin main develop`.
 2. **Actions → permissões:** _Settings → Actions → General → Workflow permissions_: **"Allow GitHub Actions to create and approve pull requests"** (em organização, habilitar também no nível da org — foi exatamente o bloqueio que o `troca` encontrou: `GitHub Actions is not permitted to create or approve pull requests`).
 3. **Secrets:**
    - `EXPO_TOKEN` — token do expo.dev (obrigatório para `build-dev`/`build-prod`);
