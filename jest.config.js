@@ -8,7 +8,7 @@ module.exports = {
   setupFilesAfterEnv: ['./jest/setup.ts'],
   resolver: 'react-native-worklets/jest/resolver',
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-svg|zustand)',
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|react-native-svg|zustand|standard-navigation)',
   ],
   testMatch: ['<rootDir>/src/**/*.test.ts?(x)', '<rootDir>/__tests__/**/*.test.ts?(x)'],
   collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/**/__fixtures__/**', '!src/test-utils/**'],
