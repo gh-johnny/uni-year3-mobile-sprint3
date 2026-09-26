@@ -6,7 +6,13 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-ci/
 web-build/
+
+# build artifacts (CI/EAS/Gradle) and transient Makefile backup
+*.apk
+*.aab
+.package.json.bak
 expo-env.d.ts
 
 # Native

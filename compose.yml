@@ -1,0 +1,104 @@
+# Pitlane — orquestração local. (Sim: um app mobile não *precisa* de compose. É pelo flex. 💪)
+#
+#   docker compose up                       → Metro (hot reload) em :8081
+#   docker compose run --rm test            → testes + gate de cobertura, dentro do container
+#   docker compose --profile sync up        → Metro + API mock da outbox (:4000)
+#   docker compose --profile reports up     → relatório de cobertura em http://localhost:8080
+#
+# Perfis: `tools` (one-shots: typecheck, lint, test, doctor, verify, bundle), `sync`, `reports`.
+# Atalhos em Makefile → `make help`.
+
+name: pitlane
+
+x-tool: &tool
+  build:
+    context: .
+    target: source
+  image: pitlane:tools
+  profiles: [tools]
+  environment:
+    CI: "1"
+    EXPO_NO_TELEMETRY: "1"
+
+services:
+  # ── servidor de desenvolvimento (Metro) ─────────────────────────────────────
+  app:
+    build:
+      context: .
+      target: dev
+    image: pitlane:dev
+    ports:
+      - "${METRO_PORT:-8081}:8081"
+    environment:
+      # IP do host na sua LAN — o celular/emulador precisa enxergar o Metro (ex.: 192.168.0.10).
+      REACT_NATIVE_PACKAGER_HOSTNAME: "${EXPO_HOST_IP:-}"
+      EXPO_PUBLIC_APP_ENV: development
+      EXPO_PUBLIC_API_URL: "${EXPO_PUBLIC_API_URL:-}"
+      EXPO_PUBLIC_SEED: "${EXPO_PUBLIC_SEED:-2026}"
+      EXPO_PUBLIC_SYNC_INTERVAL_MS: "${EXPO_PUBLIC_SYNC_INTERVAL_MS:-15000}"
+      EXPO_PUBLIC_SIMULATED_FAILURE_RATE: "${EXPO_PUBLIC_SIMULATED_FAILURE_RATE:-0.15}"
+      # bind mounts em alguns hosts (macOS/Windows) não propagam eventos de arquivo
+      CHOKIDAR_USEPOLLING: "${CHOKIDAR_USEPOLLING:-false}"
+    volumes:
+      # código-fonte ao vivo → hot reload; node_modules fica no volume nomeado (o da imagem)
+      - ./src:/app/src
+      - ./assets:/app/assets
+      - ./app.json:/app/app.json:ro
+      - node_modules:/app/node_modules
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+  # ── ferramentas one-shot (código baked na imagem = paridade com o CI) ───────
+  typecheck:
+    <<: *tool
+    command: ["npm", "run", "typecheck"]
+
+  lint:
+    <<: *tool
+    command: ["npm", "run", "lint"]
+
+  test:
+    <<: *tool
+    command: ["npm", "run", "test:cov", "--", "--ci"]
+    volumes:
+      - ./coverage:/app/coverage # relatório fica no host (alimenta o serviço `coverage`)
+
+  doctor:
+    <<: *tool
+    command: ["npx", "expo-doctor"]
+
+  verify:
+    <<: *tool
+    command: ["sh", "-c", "npm run typecheck && npm run lint && npm run test:cov -- --ci && npx expo-doctor"]
+    volumes:
+      - ./coverage:/app/coverage
+
+  bundle:
+    <<: *tool
+    command: ["npx", "expo", "export", "--platform", "android", "--output-dir", "dist/android"]
+    volumes:
+      - ./dist:/app/dist
+
+  # ── relatório de cobertura (HTML do Jest/lcov) ──────────────────────────────
+  coverage:
+    image: nginx:1.27-alpine
+    profiles: [reports]
+    ports:
+      - "${COVERAGE_PORT:-8080}:80"
+    volumes:
+      - ./coverage/lcov-report:/usr/share/nginx/html:ro
+
+  # ── API mock da outbox (POST /sync/events) ──────────────────────────────────
+  mock-api:
+    build:
+      context: ./docker/mock-api
+    image: pitlane:mock-api
+    profiles: [sync]
+    ports:
+      - "${MOCK_API_PORT:-4000}:4000"
+    environment:
+      FAIL_RATE: "${MOCK_API_FAIL_RATE:-0}"
+
+volumes:
+  node_modules:

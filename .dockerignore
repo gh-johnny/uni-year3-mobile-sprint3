@@ -1,0 +1,44 @@
+# Fora do contexto de build: nada disso entra na imagem nem invalida cache.
+
+# dependências e artefatos gerados (a imagem faz seu próprio `npm ci`)
+node_modules
+android
+ios
+dist
+dist-ci
+web-build
+coverage
+.expo
+*.tsbuildinfo
+*.apk
+*.aab
+
+# VCS / editor / agentes
+.git
+.gitignore
+.github
+.vscode
+.claude
+.idea
+.DS_Store
+
+# segredos e env locais
+.env*.local
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pem
+*.mobileprovision
+
+# docs pesados (não são necessários para typecheck/lint/test/bundle)
+docs/screenshots
+assets/branding
+
+# arquivos de infra do próprio container não precisam estar dentro dele
+Dockerfile
+compose.yml
+compose.*.yml
+Makefile
+docker
+.dockerignore
