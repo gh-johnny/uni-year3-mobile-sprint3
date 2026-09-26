@@ -1,5 +1,9 @@
 import type { User } from '@/domain/auth/user';
+import { aRecord, aVehicle } from '@/domain/__fixtures__/builders';
+import { Money } from '@/domain/shared/money';
 import { Percentage } from '@/domain/shared/percentage';
+import { ServiceHistory } from '@/domain/service/service-history';
+import { TimeSlot } from '@/domain/appointment/time-slot';
 import type { MaintenanceForecast } from '@/domain/service/maintenance-planner';
 import { createTestServices, i18nFor, signInAs, TestServices } from '@/test-utils/render';
 
@@ -246,5 +250,58 @@ describe('Radar and lead presenters', () => {
     const [driver] = radar.leads.first()!.score.drivers(1);
     expect(featureText(driver!, en)).not.toMatch(/\{\{/);
     expect(featureText({ feature: 'overdue', value: 1.55, impact: 1 }, en)).toBe('1.6× the service interval driven');
+  });
+});
+
+describe('presenter edge cases', () => {
+  const NOW = new Date('2026-09-25T13:00:00.000Z');
+
+  it('vehicle sheet: no home dealer, unknown dealer, free service and missing specs', async () => {
+    const vehicle = aVehicle({ id: 'v-transit', modelKey: 'transit', connected: false });
+    const history = ServiceHistory.of([
+      aRecord({ id: 'r-free', vehicleId: vehicle.id, dealerId: 'dlr-x', amount: Money.zero() }),
+      aRecord({ id: 'r-out', vehicleId: vehicle.id, dealerId: null }),
+    ]);
+    const forecast = { status: 'ok', wear: 0.2, kmRemaining: 5000, dueAt: new Date(2027, 0, 1) } as MaintenanceForecast;
+
+    const view = VehiclePresenter.present({ vehicle, forecast, history, dealer: null }, en, new Map(), NOW);
+
+    expect(view.homeDealer).toBe('—');
+    expect(view.connected).toBe(false);
+    expect(view.specs.some((spec) => !spec.available && spec.value === 'Not available')).toBe(true);
+    expect(view.history.map((row) => [row.place, row.amount, row.tone])).toEqual([
+      ['Ford network', 'Free of charge', 'primary'],
+      ['Outside Ford network', expect.stringContaining('1,290'), 'neutral'],
+    ]);
+  });
+
+  it('timeline: bookings without a dealer, free bookings and free services', async () => {
+    const user = await signInAs(services, 'owner');
+    const garage = (await cases().getGarage.execute(user)).value;
+    const dealerId = garage.dealers.keys().next().value as string;
+    const slots = (await cases().getAvailability.execute({ dealerId, serviceType: 'recall', day: new Date('2026-10-06T12:00:00Z') })).value;
+    await cases().bookAppointment.execute(user, { vehicleId: garage.vehicles[0]!.vehicle.id, dealerId, serviceType: 'recall', start: slots[0]!.slot.start });
+
+    const entries = (await cases().getTimeline.execute(user)).value;
+    const appointment = entries.find((entry) => entry.kind === 'appointment')!;
+    const record = entries.find((entry) => entry.kind === 'record')!;
+    if (appointment.kind !== 'appointment' || record.kind !== 'record') throw new Error('fixture');
+
+    const booked = TimelinePresenter.item({ ...appointment, dealer: null }, en);
+    expect(booked.place).toBe('—');
+    expect(booked.meta).toBe('Free of charge');
+    const free = TimelinePresenter.item({ ...record, record: aRecord({ vehicleId: record.vehicle.id, amount: Money.zero() }) }, en);
+    expect(free.meta).toContain('Free of charge');
+  });
+
+  it('booking summary of a free service, and slots with a single bay left', async () => {
+    const user = await signInAs(services, 'owner');
+    const garage = (await cases().getGarage.execute(user)).value;
+    const vehicle = garage.vehicles[0]!.vehicle;
+    const rows = BookingPresenter.summary({ vehicle, dealer: undefined, serviceType: 'recall', start: NOW }, en);
+    expect(rows.at(-1)?.value).toBe('Free of charge');
+
+    const slot = { slot: TimeSlot.restore(NOW, 30), freeBays: 1 } as never;
+    expect(BookingPresenter.slots([slot], en)[0]?.scarcity).toBe('1 bay left');
   });
 });
