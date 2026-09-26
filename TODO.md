@@ -74,13 +74,13 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - ✅ **GATE P0** — plano escrito e commitado
 
 ### P1 — Fundação de tooling
-- [ ] P1.1 Limpar template (`src/app/explore.tsx`, componentes demo, assets expo)
-- [ ] P1.2 Instalar deps via `npx expo install` (sqlite, haptics, location, camera, local-auth, secure-store, crypto, network, localization, svg, fonts, zustand, zod, rhf)
-- [ ] P1.3 Jest (`jest-expo`, RNTL, `sql.js`), `jest.config.js` com **threshold global 95%**
-- [ ] P1.4 ESLint (`expo lint`) + scripts `typecheck`, `test`, `test:cov`, `doctor`, `verify`
-- [ ] P1.5 `src/config/env.ts` com Zod + testes
-- [ ] P1.6 `app.json`: nome Pitlane, package `com.fiap.pitlane`, permissões (câmera, localização), plugins
-- ✅ **GATE P1** — `npm run verify` (tsc + lint + jest) verde; `npx expo-doctor` sem erros
+- [x] P1.1 Limpar template (`src/app/explore.tsx`, componentes demo, assets expo)
+- [x] P1.2 Instalar deps via `npx expo install` (sqlite, haptics, location, camera, local-auth, secure-store, crypto, network, localization, svg, fonts, zustand, zod, rhf)
+- [x] P1.3 Jest (`jest-expo`, RNTL, `sql.js`), `jest.config.js` com **threshold global 95%**
+- [x] P1.4 ESLint (`expo lint`) + scripts `typecheck`, `test`, `test:cov`, `doctor`, `verify`
+- [x] P1.5 `src/config/env.ts` com Zod + testes
+- [x] P1.6 `app.json`: nome Pitlane, package `com.fiap.pitlane`, permissões (câmera, localização), plugins
+- ✅ **GATE P1 (aprovado)** — `npm run verify` (tsc + lint + jest) verde; `npx expo-doctor` sem erros
 
 ### P2 — Domain (TS puro)
 - [ ] P2.1 Shared kernel: `Result`, `Guard`, `ValueObject`, `Entity`, `Collection` (first-class collections), `DomainError`, `Clock`, `Id`
@@ -163,3 +163,5 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 ## 3. Log de evidências (append-only)
 
 - **2026-09-25 · P0** — PDF lido (21 págs). Requisitos mobile no slide 13. Desafio 02 inferido pela entrega mobile anterior do grupo (companion app c/ agendamento e VIN). EAS logado (`eas whoami` ok). Android SDK local presente (platforms 35/36, JDK 17), sem system image de emulador ainda.
+- **2026-09-25 · P1** — Template removido. Deps via `npx expo install` (SDK 57). Jest: `jest-expo` + RNTL **v14** (render/userEvent são **async**, `await render()`); RNTL 14 exige peer `test-renderer` → fixado em `~1.2.0` (react-reconciler 0.33 = React 19.2; 1.3 pede React 19.3). Resolver `react-native-worklets/jest/resolver` + `setUpTests()` do Reanimated. TS 6 não auto-inclui `@types` → `types: ["jest","node"]`. Env com Zod (`src/config/env.ts`, `.env.example`). **Evidência:** `tsc` limpo · `expo lint` ok · env tests 9/9 · cobertura env 100% · `expo-doctor` **21/21 checks passed**.
+  - Nota: saída de comandos passa por um wrapper que resume (ex.: `PASS (9) FAIL (0)`); cobertura lida de `coverage/coverage-summary.json`.
