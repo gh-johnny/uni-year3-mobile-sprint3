@@ -1,0 +1,24 @@
+# EAS Workflow — build de produção: AAB (Play Store) + APK (instalação direta).
+#
+# Sem gatilho `on:` de propósito: quem dispara é o job `build-prod` do GitHub Actions
+# (.github/workflows/ci.yml), *depois* que lint/typecheck/testes/doctor passam em `main`.
+# Rodar à mão: eas workflow:run .eas/workflows/production.yml --non-interactive --wait
+#
+# Um job de build do EAS produz um único formato (o `buildType` do profile), então o par
+# AAB + APK são dois jobs: `production` (app-bundle) e `production-apk` (apk) em eas.json.
+name: Build prod (aab + apk)
+
+jobs:
+  build_aab:
+    name: Android · production (aab)
+    type: build
+    params:
+      platform: android
+      profile: production
+
+  build_apk:
+    name: Android · production (apk)
+    type: build
+    params:
+      platform: android
+      profile: production-apk

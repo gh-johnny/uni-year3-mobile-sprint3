@@ -1,0 +1,219 @@
+# CI/CD do Pitlane — adaptado do pipeline do projeto `troca` (frontend/troca-mobile).
+#
+#   semantic branch ──▶ develop ──▶ main (default)
+#   feat/* fix/* …      APK dev      APK + AAB prod
+#
+#   1. push numa branch semântica  → verify → abre PR para `develop`
+#   2. push/merge em `develop`     → verify → build EAS dev (apk) → abre PR para `main`
+#   3. push/merge em `main`        → verify → build EAS prod (apk + aab)
+#
+# `verify` = branch semântica + typecheck + lint + testes (gate de cobertura 95%) + expo-doctor
+#            + bundle (`expo export`). É exatamente o mesmo em todas as etapas e em todo PR.
+#
+# Pré-requisitos no GitHub (ver README → "CI/CD"):
+#   • Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"
+#   • Secret EXPO_TOKEN (obrigatório para os builds EAS)
+#   • Secret PR_BOT_TOKEN (recomendado): PRs abertos com o GITHUB_TOKEN *não* disparam workflows,
+#     então sem ele o PR nasce sem checks. Use um PAT/GitHub App com `pull-requests: write`.
+name: ci
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches:
+      - main
+      - develop
+      - 'feat/**'
+      - 'fix/**'
+      - 'docs/**'
+      - 'style/**'
+      - 'refactor/**'
+      - 'perf/**'
+      - 'test/**'
+      - 'build/**'
+      - 'ci/**'
+      - 'chore/**'
+      - 'revert/**'
+      - 'hotfix/**'
+  workflow_dispatch:
+
+# Uma execução por ref; a mais nova cancela a anterior — exceto em develop/main,
+# onde um build EAS em andamento não deve ser interrompido por outro push.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'develop' && github.ref_name != 'main' }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+  EXPO_NO_TELEMETRY: '1'
+
+jobs:
+  # ── 0. Nome de branch semântico ──────────────────────────────────────────────
+  branch-name:
+    name: semantic branch name
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Validar <tipo>/<descricao-em-kebab-case>
+        env:
+          REF: ${{ github.head_ref || github.ref_name }}
+        run: |
+          if [[ "$REF" == "main" || "$REF" == "develop" ]]; then
+            echo "Branch de integração ($REF), nada a validar."
+            exit 0
+          fi
+          PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|hotfix)/[a-z0-9][a-z0-9._-]*$'
+          if [[ ! "$REF" =~ $PATTERN ]]; then
+            echo "::error title=Branch fora do padrão::'$REF' não segue <tipo>/<descricao>. Ex.: feat/passe-qr, fix/crash-dealers, ci/github-actions"
+            exit 1
+          fi
+          echo "Branch semântica válida: $REF"
+
+  # ── 1. Verificação (idêntica em toda etapa do fluxo) ────────────────────────
+  verify:
+    name: verify (typecheck · lint · test · doctor · build)
+    needs: branch-name
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências (lockfile estrito)
+        run: npm ci
+
+      - name: Typecheck (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Lint (expo lint)
+        run: npm run lint
+
+      - name: Testes + gate de cobertura (≥ 95%)
+        run: npm run test:cov -- --ci
+
+      - name: Expo Doctor
+        run: npx expo-doctor
+
+      - name: Build (bundle Hermes do Android)
+        run: npx expo export --platform android --output-dir dist-ci
+
+      - name: Publicar relatório de cobertura
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ github.run_id }}
+          path: coverage/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ── 2. branch semântica → develop ───────────────────────────────────────────
+  open-pr-develop:
+    name: open PR → develop
+    needs: verify
+    if: >-
+      github.event_name == 'push' &&
+      github.ref_name != 'main' &&
+      github.ref_name != 'develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Abrir PR (título = último commit, que já é semântico)
+        env:
+          GH_TOKEN: ${{ secrets.PR_BOT_TOKEN || github.token }}
+          REF: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          TITLE="$(git log -1 --pretty=%s)"
+          gh pr create --base develop --head "$REF" \
+            --title "$TITLE" \
+            --body "CI passou em \`$REF\` (\`$SHA\`): typecheck, lint, testes (cobertura ≥ 95%), expo-doctor e bundle. PR aberto automaticamente — **sem auto-merge**, revise antes de integrar em \`develop\`." \
+            || echo "PR de $REF para develop já existe (ou não há diferença), seguindo."
+
+  # ── 3. develop → build EAS de desenvolvimento (apk) ─────────────────────────
+  build-dev:
+    name: EAS build · development (apk)
+    needs: verify
+    if: github.event_name == 'push' && github.ref_name == 'develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: development
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+
+      - name: Rodar workflow EAS (.eas/workflows/dev.yml)
+        run: eas workflow:run .eas/workflows/dev.yml --non-interactive --wait
+
+  # ── 4. develop → PR para main (só depois do APK dev gerado) ─────────────────
+  open-pr-main:
+    name: open PR → main
+    needs: build-dev
+    if: github.event_name == 'push' && github.ref_name == 'develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Abrir PR de promoção develop → main
+        env:
+          GH_TOKEN: ${{ secrets.PR_BOT_TOKEN || github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          gh pr create --base main --head develop \
+            --title "chore(release): promover develop para main" \
+            --body "CI e build EAS de desenvolvimento (APK) passaram em \`develop\` (\`$SHA\`). Este PR repete o mesmo \`verify\`; ao integrar em \`main\` são gerados os builds de **produção (APK + AAB)**. **Sem auto-merge.**" \
+            || echo "PR de develop para main já existe (ou não há diferença), seguindo."
+
+  # ── 5. main → build EAS de produção (apk + aab) ─────────────────────────────
+  build-prod:
+    name: EAS build · production (apk + aab)
+    needs: verify
+    if: github.event_name == 'push' && github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    # Configure "Required reviewers" neste environment para exigir aprovação antes do build de produção.
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: npm ci
+
+      - name: Rodar workflow EAS (.eas/workflows/production.yml → aab + apk)
+        run: eas workflow:run .eas/workflows/production.yml --non-interactive --wait

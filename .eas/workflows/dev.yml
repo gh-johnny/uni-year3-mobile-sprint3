@@ -1,0 +1,15 @@
+# EAS Workflow — build de desenvolvimento (APK interno).
+#
+# Sem gatilho `on:` de propósito: quem dispara é o job `build-dev` do GitHub Actions
+# (.github/workflows/ci.yml), *depois* que lint/typecheck/testes/doctor passam em `develop`.
+# Com `on: push` o app do EAS no GitHub buildaria em paralelo, ignorando o resultado do CI.
+# Rodar à mão: eas workflow:run .eas/workflows/dev.yml --non-interactive --wait
+name: Build dev (apk)
+
+jobs:
+  build_android:
+    name: Android · development (apk)
+    type: build
+    params:
+      platform: android
+      profile: development
