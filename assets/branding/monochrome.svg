@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="36" height="36" patternTransform="rotate(45)"><rect width="18" height="36" fill="#000000"/></pattern></defs>
+<g transform="translate(512 512) scale(0.8) translate(-512 -516)">
+<g transform="translate(512 470) skewX(-8) translate(-560 -512)"><path fill="#FFFFFF" fill-rule="evenodd" d="M320 240H610C730 240 800 320 800 420C800 520 730 600 610 600H450V784H320ZM450 350V490H600C640 490 668 460 668 420C668 380 640 350 600 350Z"/></g>
+<rect x="300" y="790" width="424" height="44" rx="6" fill="url(#hatch)"/>
+</g></svg>
