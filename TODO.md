@@ -83,13 +83,13 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - ✅ **GATE P1 (aprovado)** — `npm run verify` (tsc + lint + jest) verde; `npx expo-doctor` sem erros
 
 ### P2 — Domain (TS puro)
-- [ ] P2.1 Shared kernel: `Result`, `Guard`, `ValueObject`, `Entity`, `Collection` (first-class collections), `DomainError`, `Clock`, `Id`
-- [ ] P2.2 Value objects: `Vin` (ISO 3779 check digit, WMI Ford), `GeoPoint` (Haversine, bearing), `Mileage`, `Email`, `Money`, `Percentage`, `TimeSlot`
-- [ ] P2.3 Entidades: `Vehicle`, `Dealer`, `ServiceRecord`, `Appointment` (state machine), `Customer`, `User`/`Role`, `Lead` (pipeline), `Outreach`
-- [ ] P2.4 Collections: `Vehicles`, `ServiceHistory`, `Dealers`, `Leads`, `Appointments`
-- [ ] P2.5 Serviços de domínio: `MaintenancePlanner` (próxima revisão por km/tempo), `ServiceShareCalculator` (cortes), `AnomalyDetector` (z-score), `LogisticChurnModel` + `ChurnExplanation`, `LeadSpecification`s
-- [ ] P2.6 Builders: `AppointmentBuilder`, test data builders
-- ✅ **GATE P2** — domain 100% coberto, tsc verde
+- [x] P2.1 Shared kernel: `Result`, `Guard`, `ValueObject`, `Entity`, `Collection` (first-class collections), `DomainError`, `Clock`, `Id`
+- [x] P2.2 Value objects: `Vin` (ISO 3779 check digit, WMI Ford), `GeoPoint` (Haversine, bearing), `Mileage`, `Email`, `Money`, `Percentage`, `TimeSlot`
+- [x] P2.3 Entidades: `Vehicle`, `Dealer`, `ServiceRecord`, `Appointment` (state machine), `Customer`, `User`/`Role`, `Lead` (pipeline), `Outreach`
+- [x] P2.4 Collections: `Vehicles`, `ServiceHistory`, `Dealers`, `Leads`, `Appointments`
+- [x] P2.5 Serviços de domínio: `MaintenancePlanner` (próxima revisão por km/tempo), `ServiceShareCalculator` (cortes), `AnomalyDetector` (z-score), `LogisticChurnModel` + `ChurnExplanation`, `LeadSpecification`s
+- [x] P2.6 Builders: `AppointmentBuilder`, test data builders
+- ✅ **GATE P2 (aprovado)** — domain 100% coberto, tsc verde
 
 ### P3 — Infrastructure
 - [ ] P3.1 Port `SqlDatabase` + adapter `ExpoSqliteDatabase` + `SqlJsDatabase` (testes)
@@ -165,3 +165,6 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - **2026-09-25 · P0** — PDF lido (21 págs). Requisitos mobile no slide 13. Desafio 02 inferido pela entrega mobile anterior do grupo (companion app c/ agendamento e VIN). EAS logado (`eas whoami` ok). Android SDK local presente (platforms 35/36, JDK 17), sem system image de emulador ainda.
 - **2026-09-25 · P1** — Template removido. Deps via `npx expo install` (SDK 57). Jest: `jest-expo` + RNTL **v14** (render/userEvent são **async**, `await render()`); RNTL 14 exige peer `test-renderer` → fixado em `~1.2.0` (react-reconciler 0.33 = React 19.2; 1.3 pede React 19.3). Resolver `react-native-worklets/jest/resolver` + `setUpTests()` do Reanimated. TS 6 não auto-inclui `@types` → `types: ["jest","node"]`. Env com Zod (`src/config/env.ts`, `.env.example`). **Evidência:** `tsc` limpo · `expo lint` ok · env tests 9/9 · cobertura env 100% · `expo-doctor` **21/21 checks passed**.
   - Nota: saída de comandos passa por um wrapper que resume (ex.: `PASS (9) FAIL (0)`); cobertura lida de `coverage/coverage-summary.json`.
+- **2026-09-25 · P2** — Domain em TS puro (zero import de RN): shared kernel (`Result`, `DomainError`, `ValueObject`, `Entity`, `Collection` genérica com self-type, `Specification`, `Clock`, `Money`, `Percentage`), VOs (`Vin` c/ dígito verificador ISO 3779 + WMI Ford→país + ano-modelo; `GeoPoint` Haversine/bearing; `Mileage`, `Email` c/ máscara LGPD, `TimeSlot`), entidades (`Vehicle`, `Dealer`, `Customer`, `User`+`Role` RBAC, `ServiceRecord`, `Appointment` state machine, `Lead` pipeline, `Outreach`), collections (`Vehicles`, `Dealers`, `ServiceHistory`, `Appointments`, `Leads`), serviços (`MaintenancePlanner` 2 relógios km/tempo, `SlotPlanner` c/ almoço/sábado/baias, `ServiceShareCalculator` 4 cortes + tendência, `AnomalyDetector` z-score, `ChurnFeatureExtractor` + `LogisticChurnModel` explicável, `NextBestActions`, `OfferEngine`), builders (`AppointmentBuilder` + test data builders em `__fixtures__`). Ficha técnica **Ranger Raptor** idêntica ao slide do kick-off (completude 100%, campos ausentes explícitos → alinhado ao Desafio 01 também).
+  - **Evidência:** 104 testes · cobertura domain **100% stmts / 100% branches / 100% funcs / 100% lines** · `tsc` limpo · lint ok. TZ dos testes fixado em `America/Sao_Paulo` (jest.config.js).
+  - Dica: rodar `node node_modules/jest/bin/jest.js` direto mostra a saída crua (o `npx` passa por wrapper que resume).

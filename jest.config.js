@@ -1,3 +1,6 @@
+// Deterministic dates across machines/CI: the product is Brazilian, so tests run in São Paulo time.
+process.env.TZ = 'America/Sao_Paulo';
+
 /** @type {import('jest').Config} */
 module.exports = {
   preset: 'jest-expo',
