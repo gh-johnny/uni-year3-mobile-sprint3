@@ -1,6 +1,8 @@
 import type { Garage, GarageVehicle } from '@/application/use-cases/garage';
 import type { Offer } from '@/domain/offers/offer-engine';
+import type { MaintenanceForecast } from '@/domain/service/maintenance-planner';
 import type { ServiceTypeKey } from '@/domain/service/service-type';
+import type { Vehicle } from '@/domain/vehicle/vehicle';
 
 import type { IconName, Tone } from '../design-system';
 import type { I18n } from '../hooks/use-i18n';
@@ -62,24 +64,14 @@ export class GaragePresenter {
   static vehicle(entry: GarageVehicle, garage: Garage, i18n: I18n, now: Date): VehicleCardViewModel {
     const { t, f } = i18n;
     const { vehicle, forecast, history, nextAppointment } = entry;
-    const overdue = forecast.kmRemaining < 0 || forecast.status === 'overdue';
-    const detail = overdue
-      ? t('health.overdueBy', { km: f.km(Math.max(0, -forecast.kmRemaining)) })
-      : t('health.dueIn', { when: f.relative(forecast.dueAt, now), km: f.km(forecast.kmRemaining) });
 
     return {
       id: vehicle.id,
       title: vehicle.displayName,
       model: vehicle.model.name,
-      subtitle: [vehicle.version, vehicle.year, vehicle.color].filter((part) => part && part !== '—').join(' · '),
+      subtitle: GaragePresenter.subtitle(vehicle),
       vin: vehicle.vin.formatted(),
-      health: {
-        progress: Math.max(0, 1 - forecast.wear),
-        tone: HEALTH_TONES[forecast.status],
-        label: t(`health.${forecast.status}`),
-        percent: f.percent(Math.max(0, 1 - forecast.wear)),
-        detail,
-      },
+      health: GaragePresenter.health(forecast, i18n, now),
       odometer: f.km(vehicle.mileage.km),
       warranty: vehicle.isUnderWarranty(now)
         ? { value: t('garage.warrantyLeft', { when: f.relative(vehicle.warrantyEndsAt, now) }), tone: 'success' }
@@ -88,6 +80,23 @@ export class GaragePresenter {
       nextVisit: nextAppointment ? GaragePresenter.nextVisit(nextAppointment, garage, i18n, now) : null,
       offers: entry.offers.map((offer) => GaragePresenter.offer(offer, i18n)),
       offersTitle: t('garage.offersTitle', { model: vehicle.model.name }),
+    };
+  }
+
+  static subtitle(vehicle: Vehicle): string {
+    return [vehicle.version, vehicle.year, vehicle.color].filter((part) => part && part !== '—').join(' · ');
+  }
+
+  static health(forecast: MaintenanceForecast, { t, f }: I18n, now: Date): VehicleCardViewModel['health'] {
+    const overdue = forecast.kmRemaining < 0 || forecast.status === 'overdue';
+    return {
+      progress: Math.max(0, 1 - forecast.wear),
+      tone: HEALTH_TONES[forecast.status],
+      label: t(`health.${forecast.status}`),
+      percent: f.percent(Math.max(0, 1 - forecast.wear)),
+      detail: overdue
+        ? t('health.overdueBy', { km: f.km(Math.max(0, -forecast.kmRemaining)) })
+        : t('health.dueIn', { when: f.relative(forecast.dueAt, now), km: f.km(forecast.kmRemaining) }),
     };
   }
 

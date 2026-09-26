@@ -122,23 +122,23 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - [~] P6.2 Tab bar flutuante própria (indicador animado + haptic)
 - [~] P6.3 Garage (hero do veículo, anel de saúde, próxima revisão prevista, ticket do agendamento, ofertas)
 - [~] P6.4 Booking (modal multi-step: serviço → concessionária por distância → data/slot → revisão → confirmação animada)
-- [ ] P6.5 Service Pass (formSheet com QR para check-in)
-- [ ] P6.6 History (timeline)
-- [ ] P6.7 Dealers (lista por distância + **bússola** apontando pra concessionária via heading do GPS)
-- [ ] P6.8 VIN scan (câmera + digitação manual validada)
-- [ ] P6.9 Vehicle detail (ficha técnica — Ranger Raptor)
+- [~] P6.5 Service Pass (formSheet com QR para check-in)
+- [~] P6.6 History (timeline)
+- [~] P6.7 Dealers (lista por distância + **bússola** apontando pra concessionária via heading do GPS)
+- [~] P6.8 VIN scan (câmera + digitação manual validada)
+- [~] P6.9 Vehicle detail (ficha técnica — Ranger Raptor)
 - ✅ **GATE P6** — fluxos Owner testados (render + navegação)
 
 ### P7 — Features Advisor
-- [ ] P7.1 Pulse (KPI Service Share animado, tendência 12m, cortes por concessionária/modelo/idade/serviço, anomalias)
-- [ ] P7.2 Radar (varredura animada com blips por risco + lista filtrável por Specification)
-- [ ] P7.3 Lead sheet (formSheet: explicação do score, ações → outbox, avanço de pipeline)
+- [~] P7.1 Pulse (KPI Service Share animado, tendência 12m, cortes por concessionária/modelo/idade/serviço, anomalias)
+- [~] P7.2 Radar (varredura animada com blips por risco + lista filtrável por Specification)
+- [~] P7.3 Lead sheet (formSheet: explicação do score, ações → outbox, avanço de pipeline)
 - ✅ **GATE P7** — fluxos Advisor testados
 
 ### P8 — Transversal
-- [ ] P8.1 Settings (tema, idioma, haptics, biometria, sync center, reset demo, sair)
-- [ ] P8.2 Design System showcase (tela navegável com todas as variantes)
-- [ ] P8.3 Indicador de sync/offline global
+- [~] P8.1 Settings (tema, idioma, haptics, biometria, sync center, reset demo, sair)
+- [~] P8.2 Design System showcase (tela navegável com todas as variantes)
+- [~] P8.3 Indicador de sync/offline global
 - ✅ **GATE P8**
 
 ### P9 — Branding
@@ -177,3 +177,5 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - **2026-09-25 · P5/P6 (parcial — sessão interrompida pelo usuário, ver `HANDOFF.md`)** — Escrito e **sem testes ainda**: design system completo (`src/presentation/design-system`: tokens palette/tipografia Barlow+Barlow Condensed+JetBrains Mono/spacing/motion, `Theme.for(scheme)` light/dark, `makeStyles`, 45 ícones SVG próprios, Text, Button (7 variantes × 3 tamanhos, inclui `inverse`), IconButton, Card, Badge, Chip, SegmentedControl, TextField+FormTextField (RHF), Switch, ListItem, Avatar/Divider, Screen/ScreenHeader/SectionHeader/Skeleton/LoadingState/EmptyState/StatTile, ToastHost/ConfirmDialog, Gauge (tacômetro 270° c/ redline+agulha), TrendChart, BarList, QrCode (matriz pura do `qrcode/lib/core`), PitStripe/Wordmark/AnimatedNumber/Stepper); i18n tipado EN/PT-BR (`Translator`, `Formatters`); stores Zustand (preferências persistidas no `expo-sqlite/kv-store`, sessão, toasts); `AppRoot` (fonts, bootstrap, restore JWT, sync start, lock biométrico em background); rotas `_layout` (Stack.Protected por papel), `index`, `sign-in`, `(owner)/_layout`, `(owner)/garage`, `(advisor)/_layout`, `booking`; features sign-in, garage (+presenter), booking (+`BookingDraft` imutável + presenter).
   - **Evidência:** `tsc` limpo · `eslint` limpo · 195 testes (camadas domain/app/infra) verdes · `npx expo export --platform android` gerou bundle Hermes (5,5 MB) sem erro · system image `android-35;google_apis;x86_64` + cmdline-tools instalados em `~/Android/Sdk` (sem AVD criado ainda).
   - ⚠️ `npm run test:cov` vai **falhar o threshold 95%** até a camada `src/presentation` + `src/app` ganhar testes (P10).
+- **2026-09-26 · P6/P7/P8 (telas escritas, testes pendentes)** — Rotas finas (re-export de 1 linha) + features: `history` (timeline agrupada "Booked"/ano, linha de agendamento abre o passe), `dealers` (herói com **bússola**: `heading.watch()` → shared value com `unwrapAngle` p/ girar pelo caminho curto; seta = bearing − heading; "Book here" usa o 1º veículo da garagem, sem veículo → `/scan`), `settings` (tema/idioma/haptics/biometria com prompt ao ligar, sync center, showcase, reset demo com `ConfirmDialog`, sign out — compartilhada por `(owner)/account` e `(advisor)/profile`), `pass` (formSheet: QR do `checkInCode`, cancelar com `ConfirmDialog`), `vehicle` (ficha técnica com campo nulo → `common.notAvailable`), `scan` (`expo-camera` code39/code128/datamatrix/qr/pdf417 + digitação, decode ISO 3779 ao vivo, RHF+Zod, `extractVin` trata prefixo "I" de placas norte-americanas), `pulse` (gauge do Service Share, tendência 12m own×network, 4 cortes com benchmark, anomalias z-score), `radar` (varredura animada Reanimated + blips por tier + filtros por `Specification`), `lead` (formSheet: contribuição por feature, próxima melhor ação, contato→outbox, pipeline só com movimentos aceitos por `Lead.canMoveTo`), `sync` (outbox visível + "Sync now"), `SyncPill` global (P8.3) nos headers Garage/Pulse/Radar, `design-system` (showcase). Presenters puros novos: timeline, dealers, vehicle, pulse, lead/radar; `GaragePresenter.health/subtitle` extraídos p/ reuso. Domínio: `Lead.canMoveTo` (+1 teste). Container expõe `repositories.dealers`.
+  - **Evidência:** `tsc` limpo · `eslint src` 0 mensagens · 196 testes verdes (195 + `Lead.canMoveTo`) · `expo export --platform android` OK (Hermes 5,7 MB). ⚠️ Camada `presentation` + `app` ainda **sem testes** (gate 95% pendente, P10) e telas **ainda não exercitadas em emulador**.

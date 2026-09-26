@@ -96,7 +96,7 @@ function buildUseCases(options: ContainerOptions, clock: Clock, events: EventBus
   const leadDetail = new GetLeadDetail(advisorDeps);
 
   return {
-    repositories: { outbox },
+    repositories: { outbox, dealers },
     hasher,
     sessions,
     signIn: new SignIn(users, hasher, tokens, sessions, clock, new LoginThrottle()),

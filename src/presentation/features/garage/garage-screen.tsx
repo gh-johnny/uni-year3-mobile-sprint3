@@ -24,6 +24,7 @@ import { useResult } from '../../hooks/use-result';
 import { GaragePresenter, NextVisitViewModel, OfferViewModel, VehicleCardViewModel } from '../../presenters/garage-presenter';
 import { useHaptics, useServices } from '../../providers/services';
 import { useCurrentUser } from '../../state/session-store';
+import { SyncPill } from '../sync/sync-pill';
 import { VehicleHeroCard } from './vehicle-hero-card';
 
 const CARD_GAP = 12;
@@ -194,7 +195,12 @@ export function GarageScreen() {
       <ScreenHeader
         eyebrow={view.eyebrow}
         title={view.greeting}
-        accessory={<IconButton icon="plus" label={i18n.t('garage.addVehicle')} onPress={() => router.push('/scan')} testID="add-vehicle" />}
+        accessory={
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <SyncPill />
+            <IconButton icon="plus" label={i18n.t('garage.addVehicle')} onPress={() => router.push('/scan')} testID="add-vehicle" />
+          </View>
+        }
       />
       <Animated.View entering={FadeInDown.delay(80).duration(420)} style={{ marginHorizontal: -20 }}>
         <ScrollView

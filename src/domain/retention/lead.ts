@@ -122,6 +122,11 @@ export class Lead extends Entity<LeadProps> {
     return this.props.status !== 'won' && this.props.status !== 'lost';
   }
 
+  /** Lets the UI offer only the pipeline moves the state machine will accept. */
+  canMoveTo(status: LeadStatus): boolean {
+    return TRANSITIONS[this.props.status].includes(status);
+  }
+
   /** LGPD: marketing outreach requires consent. */
   registerContact(now: Date): Result<void> {
     if (!this.props.consent) return Result.fail('lead.noConsent');

@@ -214,6 +214,17 @@ describe('Lead', () => {
   it('refuses outreach without LGPD consent', () => {
     expect(aLead({ consent: false }).registerContact(NOW).error.code).toBe('lead.noConsent');
   });
+
+  it('tells which pipeline moves the state machine accepts', () => {
+    const lead = aLead();
+    expect(lead.canMoveTo('contacted')).toBe(true);
+    expect(lead.canMoveTo('won')).toBe(false);
+    lead.markScheduled(NOW);
+    expect(lead.canMoveTo('won')).toBe(true);
+    expect(lead.canMoveTo('contacted')).toBe(false);
+    lead.markLost(NOW);
+    expect(lead.canMoveTo('new')).toBe(true);
+  });
 });
 
 describe('Leads & LeadSpecs', () => {
