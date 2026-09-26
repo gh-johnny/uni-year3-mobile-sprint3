@@ -43,6 +43,10 @@ Ver o log de evidências no fim do `TODO.md` (inclui os 5 defeitos que só o emu
 3. Recomendado: instalar o APK num **device físico** e conferir o que o emulador não cobre — leitura real do
    código de barras do VIN, seta da bússola girando com o magnetômetro e biometria.
 4. Gravar/roteirizar a demonstração (fluxos: Owner agenda → passe QR; Advisor vê Pulse/Radar → contata lead → outbox).
+5. **Ativar o CI/CD** (arquivos prontos, nunca executados): criar o repo no GitHub, branch `develop`, permissão
+   "Allow GitHub Actions to create and approve pull requests", secrets `EXPO_TOKEN` (+ `PR_BOT_TOKEN`), environments
+   `development`/`production`, branch protection e `eas init`. Checklist completo em README §11.
+6. Containers: `make help` (Docker/Compose/Makefile prontos e validados — README §12). `make ci-local` reproduz o pipeline localmente.
 
 ### Gotchas aprendidos nesta sessão
 - `expo prebuild` reescreve os scripts `android`/`ios` do `package.json` → `git checkout package.json` depois.

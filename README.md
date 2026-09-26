@@ -10,8 +10,12 @@ App mobile (Expo / React Native) para o **Desafio 02 da Ford — VIN Share / Ser
 | **Integrantes** | João Marcelo Furtado Romero — **RM555199** · Matheus Rivera Montovaneli — **RM555499** · André Nakamatsu Rocha — **RM555004** |
 | **Stack** | Expo SDK 57 · React Native 0.86 · React 19.2 · Expo Router · TypeScript (strict) |
 | **Pacote Android** | `br.com.fiap.pitlane` |
+| **CI/CD** | GitHub Actions (`semantic branch → develop → main`) + EAS Build — [§11](#11-cicd--github-actions--eas-build) |
+| **Containers** | Docker multi-stage · Compose · Makefile — [§12](#12-containers-docker--compose--makefile) |
 
 > Pitlane é onde o carro volta para ser cuidado. Um único app local-first com **duas personas**: o **dono** do Ford e o **consultor de pós-venda**.
+
+**Sumário** — [1. Desafio](#1-o-desafio-e-como-o-app-o-resolve) · [2. Requisitos da Sprint](#2-o-que-a-sprint-3-pede--onde-está-atendido) · [3. Funcionalidades](#3-funcionalidades) · [4. Telas](#4-telas) · [5. Rodar/testar/APK](#5-como-rodar-testar-e-gerar-o-apk) · [6. Arquitetura](#6-arquitetura) · [7. Decisões](#7-decisões-de-arquitetura) · [8. Churn](#8-modelo-de-retenção-churn) · [9. Qualidade](#9-qualidade-e-verificação) · [10. Identidade visual](#10-identidade-visual) · [11. CI/CD](#11-cicd--github-actions--eas-build) · [12. Containers](#12-containers-docker--compose--makefile) · [13. Convenções e JSDoc](#13-convenções-de-código-branches-commits-e-jsdoc) · [14. Licença](#14-licença)
 
 ---
 
@@ -162,6 +166,8 @@ npm run verify                                     # os três acima
 npx expo-doctor                                    # 21/21 checks
 ```
 
+> Sem Node instalado (ou para reproduzir o CI)? `make verify` roda tudo isso **dentro de um container** — ver [§12](#12-containers-docker--compose--makefile). `make help` lista os comandos.
+
 ### APK
 
 **Via EAS Build** (perfil `preview` → APK instalável):
@@ -169,6 +175,8 @@ npx expo-doctor                                    # 21/21 checks
 ```bash
 npm run build:apk          # = eas build -p android --profile preview
 ```
+
+Os perfis de `eas.json` (`development`, `preview`, `production`, `production-apk`) e como o CI os usa estão em [§11](#11-cicd--github-actions--eas-build).
 
 **Local (Gradle)** — o caminho usado para gerar o APK entregue:
 
@@ -299,6 +307,9 @@ Faixas de risco: `critical ≥ 75%`, `high ≥ 55%`, `medium ≥ 30%`, `low` aba
 | Cobertura (threshold global 95 %) | **99,3 %** statements · **95,9 %** branches · **99,4 %** functions · **99,5 %** linhas |
 | `expo-doctor` | 21/21 checks |
 | APK release no emulador (Android 15) | todos os fluxos das duas personas percorridos, sem crash no _logcat_ |
+| Container Node 22 (`docker build --target check`) | `npm ci` estrito + typecheck + lint + 348 testes + gate de cobertura — verde (mesmos números do host) |
+| `expo-doctor` e `expo export` no container | 21/21 · bundle Hermes de 5,4 MB |
+| Infra estática | `actionlint` (workflows), `hadolint` (Dockerfiles) e `docker compose config`: 0 problemas |
 
 Como os testes rodam: domínio e casos de uso sobre **SQL real** (`sql.js`); telas com React Native Testing Library dirigidas por eventos de usuário; e um teste que sobe o **app inteiro** (`expo-router/testing-library`, rotas reais + _guards_ + tab bar + restauração de sessão + bloqueio biométrico) sobre o container real, com _fakes_ apenas para os módulos de dispositivo.
 
@@ -322,6 +333,229 @@ Azul Ford (`#00095B`) como âncora, um único acento quente — o laranja "Code 
 
 ---
 
-## 11. Licença
+## 11. CI/CD — GitHub Actions + EAS Build
+
+Pipeline **adaptado do projeto `troca`** (`frontend/troca-mobile`): mesma ideia — um job `verify` que serve de portão, PRs de promoção abertos automaticamente e build EAS — reduzida de três ambientes (`dev → hom → main`) para **dois** (`develop → main`).
+
+> **Status:** escrito e **validado estaticamente** (`actionlint` sem problemas; o `verify` foi reproduzido num container Node 22, ver [§9](#9-qualidade-e-verificação)). **O fluxo real não foi executado**: o repositório não tem remoto GitHub configurado e nenhum build EAS foi disparado.
+
+### Fluxo
+
+```mermaid
+flowchart LR
+  subgraph S1["1 · branch semântica"]
+    A["feat/* · fix/* · chore/* …"] -->|push| V1{{"verify"}}
+  end
+  V1 -->|passou| PR1["PR → develop<br/>(aberto pelo CI)"]
+  PR1 -.->|"o PR também roda verify"| M1(["merge em develop"])
+  subgraph S2["2 · develop"]
+    M1 --> V2{{"verify"}}
+    V2 -->|passou| B1["EAS build dev<br/>(APK)"]
+  end
+  B1 -->|gerou| PR2["PR → main<br/>(aberto pelo CI)"]
+  PR2 -.->|"o PR também roda verify"| M2(["merge em main (default)"])
+  subgraph S3["3 · main"]
+    M2 --> V3{{"verify"}}
+    V3 -->|passou| B2["EAS build prod<br/>(AAB + APK)"]
+  end
+```
+
+Nenhum PR é mesclado automaticamente — o CI **abre** o PR; a revisão e o merge são humanos.
+
+### Jobs (`.github/workflows/ci.yml`)
+
+| Job | Quando roda | Depende de | O que faz |
+|---|---|---|---|
+| `branch-name` | todo push/PR | — | Exige `<tipo>/<descricao-em-kebab>` (ou `main`/`develop`) |
+| `verify` | todo push/PR | `branch-name` | `npm ci` → typecheck → lint → testes com **gate de cobertura ≥ 95 %** → `expo-doctor` → `expo export` (bundle Hermes). Publica o relatório de cobertura como artefato |
+| `open-pr-develop` | push em branch semântica | `verify` | `gh pr create --base develop` (título = último commit) |
+| `build-dev` | push em `develop` | `verify` | `eas workflow:run .eas/workflows/dev.yml` → **APK de desenvolvimento** |
+| `open-pr-main` | push em `develop` | `build-dev` | `gh pr create --base main --head develop` |
+| `build-prod` | push em `main` | `verify` | `eas workflow:run .eas/workflows/production.yml` → **AAB + APK de produção** |
+
+Comportamentos deliberados: `concurrency` cancela execuções antigas da mesma branch (exceto em `develop`/`main`, para não matar um build EAS em andamento); `timeout-minutes` em todo job; `permissions` mínimas por job.
+
+### Perfis do EAS (`eas.json`) e workflows (`.eas/workflows/`)
+
+| Perfil | Saída | Usado por |
+|---|---|---|
+| `development` | APK interno (`EXPO_PUBLIC_APP_ENV=development`) | `.eas/workflows/dev.yml` ← job `build-dev` |
+| `preview` | APK interno | `npm run build:apk` (entrega da Sprint) |
+| `production` | **AAB** (`app-bundle`), `autoIncrement` | `.eas/workflows/production.yml` ← job `build-prod` |
+| `production-apk` | **APK** (`extends: production`) | idem |
+
+Um build do EAS gera **um** formato por perfil (o `buildType`), por isso "AAB + APK" são dois jobs no workflow de produção.
+
+### Configuração única (checklist antes do primeiro push)
+
+1. **Branches:** `main` como padrão; criar `develop` — `git switch -c develop && git push -u origin develop`.
+2. **Actions → permissões:** _Settings → Actions → General → Workflow permissions_: **"Allow GitHub Actions to create and approve pull requests"** (em organização, habilitar também no nível da org — foi exatamente o bloqueio que o `troca` encontrou: `GitHub Actions is not permitted to create or approve pull requests`).
+3. **Secrets:**
+   - `EXPO_TOKEN` — token do expo.dev (obrigatório para `build-dev`/`build-prod`);
+   - `PR_BOT_TOKEN` — PAT (ou GitHub App) com _Pull requests: read/write_. **Por quê:** PRs abertos com o `GITHUB_TOKEN` padrão _não disparam_ outros workflows, então o PR nasceria sem checks. Sem o secret o pipeline ainda funciona (cai no `github.token`), mas o PR não terá o `verify`.
+4. **Environments** `development` e `production` (em _Settings → Environments_); em `production`, marque _Required reviewers_ para exigir aprovação antes do build de produção.
+5. **Branch protection** em `develop` e `main`: exigir PR e os checks `semantic branch name` e `verify (typecheck · lint · test · doctor · build)`; bloquear push direto.
+6. **Expo:** `eas login` + `eas init` (vincula o `projectId` — o `app.json` ainda não o tem); a keystore Android é gerada no primeiro build (`eas credentials`). Não é preciso conectar o app do GitHub ao Expo: quem dispara o build é o próprio CI.
+
+### Diferenças em relação ao `troca`
+
+| `troca` | Pitlane | Por quê |
+|---|---|---|
+| `feat/*`/`fix/*` → `dev` → `hom` → `main` | branch semântica → `develop` → `main` | Pedido do fluxo (dois estágios) |
+| Workflows do EAS com `on: push` (o app do EAS builda por conta própria) | Workflows **sem `on:`**, disparados pelo job do CI com `eas workflow:run --wait` | O build só acontece **se o `verify` passar** (com `on: push` ele rodaria em paralelo, ignorando o CI) |
+| `gh pr create` com `github.token` | `PR_BOT_TOKEN` com _fallback_ para `github.token` | O PR precisa disparar os checks |
+| PR de promoção logo após o `verify` | PR `develop → main` só **depois do APK dev** | Pedido do fluxo |
+| Produção só APK | **AAB + APK** (dois perfis) | Play Store + instalação direta |
+| Dev com `developmentClient` (exige `expo-dev-client`) | Dev = APK interno, sem _dev client_ | Não adiciona dependência nativa ao app; para trocar: `npx expo install expo-dev-client` + `developmentClient: true` |
+| `appVersionSource: remote` | idem (`autoIncrement` só em produção) | O `versionCode` sobe sem commit no CI |
+| `npm ci --legacy-peer-deps` | `npm ci` estrito | O lockfile do Pitlane instala limpo (comprovado no container) |
+| lint + typecheck + test | + cobertura ≥ 95 % + `expo-doctor` + `expo export` | Pedido: build, testes e doctor |
+
+### Reproduzir localmente
+
+```bash
+make ci-local             # infra (actionlint, hadolint, compose) + verify dentro do container
+make eas-dev              # dry-run: só mostra o comando do build EAS de dev
+make eas-dev CONFIRM=1    # executa de verdade (precisa de login/projeto Expo)
+```
+
+---
+
+## 12. Containers (Docker · Compose · Makefile)
+
+> Um app mobile **não precisa** de container — isto é por paridade com o CI, onboarding sem instalar Node e, sendo sincero, também um flex. Os alvos abaixo foram **executados e validados**, não só escritos (exceções: `make apk-local` e `make rebuild`, que não foram reexecutados).
+
+### O que tem aqui
+
+| Arquivo | Função |
+|---|---|
+| `Dockerfile` | Multi-stage (Node 22, usuário não-root, cache do npm via BuildKit, `HEALTHCHECK`) |
+| `compose.yml` | Serviços e perfis (dev, ferramentas, cobertura, API mock) |
+| `Makefile` | Atalhos auto-documentados (`make help`) |
+| `docker/mock-api/` | API de mentira para a **outbox** (`POST /sync/events`, idempotente por `id`) |
+| `.dockerignore` | Mantém `node_modules`, `android/`, `.git`, screenshots… fora do contexto |
+
+**Estágios do `Dockerfile`**
+
+| Alvo (`--target`) | O que faz |
+|---|---|
+| `deps` | `npm ci` — só refaz quando `package*.json` mudam |
+| `source` | dependências + código (base das ferramentas) |
+| `check` | typecheck + lint + testes + gate de cobertura — **o build falha se algo quebrar** |
+| `coverage` | (scratch) exporta o relatório: `docker build --target coverage -o coverage .` |
+| `bundle` / `bundle-out` | `expo export` (Hermes) / exporta o bundle: `docker build --target bundle-out -o dist/android .` |
+| `dev` _(padrão)_ | Metro com hot reload na porta 8081 |
+
+**Serviços do `compose.yml`**
+
+| Serviço | Perfil | Comando / porta |
+|---|---|---|
+| `app` | _(padrão)_ | Metro (`:8081`), código-fonte montado como volume → hot reload |
+| `typecheck` · `lint` · `test` · `doctor` · `verify` · `bundle` | `tools` | one-shots; código _baked_ na imagem (mesmo que o CI). `test`/`verify` gravam `./coverage` |
+| `coverage` | `reports` | nginx servindo o HTML de cobertura em `:8080` |
+| `mock-api` | `sync` | API mock da outbox em `:4000` (`FAIL_RATE` simula 503 para ver o _backoff_) |
+
+### Comandos (`make help` lista todos)
+
+| Comando | O que faz |
+|---|---|
+| `make build` | Constrói as imagens (dev, tools, mock-api) |
+| `make test` | Testes + gate de cobertura **dentro do container** |
+| `make lint` · `make typecheck` · `make doctor` | Idem, para cada verificação |
+| `make verify` | typecheck + lint + testes + doctor (= job `verify` do CI) |
+| `make bundle` | `expo export` no container → `./dist/android` |
+| `make up` · `make down` · `make logs` | Metro em segundo plano · derruba tudo · logs |
+| `make shell` · `make shell-dev` | Shell numa imagem descartável · no Metro em execução |
+| `make sync-up` · `make sync-events` | Sobe a API mock · lista o que ela recebeu |
+| `make coverage` | Serve o relatório em http://localhost:8080 |
+| `make check-infra` | `actionlint` + `hadolint` + `compose config` (via container) |
+| `make ci-local` | `check-infra` + `verify` — reproduz o pipeline sem sair da máquina |
+| `make *-local` | Versões no host (`test-local`, `cov-local`, `verify-local`…) |
+| `make apk-local` | APK release via prebuild + Gradle (precisa de JDK 17 + Android SDK) |
+| `make eas-dev` · `make eas-prod` | Builds EAS — _dry-run_ por padrão, `CONFIRM=1` para executar |
+| `make clean` · `make docker-clean` · `make prune` | Limpeza (artefatos · containers/imagens · dangling) |
+
+```bash
+# Metro para um celular na mesma rede (o celular precisa enxergar o host, não o container)
+EXPO_HOST_IP=192.168.0.10 make up
+
+# API mock da outbox + app apontando para ela (emulador Android: 10.0.2.2 = host)
+make sync-up
+EXPO_PUBLIC_API_URL=http://10.0.2.2:4000 make up
+make sync-events
+```
+
+### Validação realizada
+
+| Verificação | Resultado |
+|---|---|
+| `docker build --target check` (Node 22) | `npm ci` + typecheck + lint + 348 testes + cobertura 99,3 / 95,9 / 99,4 / 99,5 — verde |
+| `make test` · `make doctor` · `make bundle` | verde · 21/21 · bundle de 5,4 MB |
+| `make up` | Metro `healthy`; manifesto e bundle Android de desenvolvimento servidos (HTTP 200, ≈ 11,6 MB) |
+| `make sync-up` | mock `healthy`; reenvio do mesmo evento → `duplicates: 1`; payload inválido → 400 |
+| `make coverage` | nginx serve o relatório (99,27 % / 95,94 % / 99,37 % / 99,53 %) |
+| `make export-bundle` · `make export-coverage` | artefatos saem do build direto para `dist/android` e `coverage/` (BuildKit `--output`) |
+| `make build` · `make shell` · `make versions` · `make size` | exit 0; o shell roda como `node` (uid 1000) em Node 22 com `TZ=America/Sao_Paulo` |
+| `make eas-dev` · `make eas-prod` | _dry-run_ imprime o comando; nada é enviado ao Expo sem `CONFIRM=1` |
+| `actionlint` · `hadolint` · `docker compose config` | 0 problemas |
+
+### Limitações
+
+- **O APK/AAB não é gerado em container**: exige Android SDK + NDK (~5 GB). Quem builda é o EAS (§11) ou `make apk-local`.
+- As imagens têm ≈ 1,6 GB (é o `node_modules` do React Native).
+- A API mock usa HTTP em texto puro; o Android bloqueia isso em _release_ — use com builds de debug/desenvolvimento.
+- `expo-doctor` é baixado pelo `npx` a cada execução (precisa de rede).
+
+---
+
+## 13. Convenções de código: branches, commits e JSDoc
+
+### Branches e commits
+
+- **Branch semântica:** `<tipo>/<descricao-em-kebab-case>` com `tipo` ∈ `feat · fix · docs · style · refactor · perf · test · build · ci · chore · revert · hotfix`. Ex.: `feat/passe-qr`, `fix/crash-dealers`. O job `branch-name` reprova qualquer outra coisa.
+- **Commits:** [Conventional Commits](https://www.conventionalcommits.org/) — `feat(presentation): …`, `fix: …`, `test: …`, `docs: …`. O título do PR aberto pelo CI é o do último commit, então mantenha-o semântico. Autoria: o nome de cada integrante, **sem** `Co-Authored-By` de IA.
+
+### JSDoc
+
+APIs públicas de domínio, aplicação e infraestrutura (e alguns hooks/presenters) têm JSDoc para que o **hover do editor** já explique o contrato — não é preciso abrir o arquivo. Comentários no código ficam em inglês (como o resto do código); este README, em português.
+
+Convenções:
+
+- Explique **o contrato e o porquê**, não repita o tipo TypeScript.
+- Tags usadas: `@param`, `@returns`, `@throws`, `@typeParam`, `@example`, `@remarks` e `{@link}`.
+- Códigos de erro do domínio aparecem em `@returns`/`@throws` (`booking.slotTaken`, `lead.noConsent`…) — são as chaves de `errors.*` no i18n.
+- Todo `@example` deve ser verdadeiro (os números dos exemplos foram conferidos).
+
+Onde há JSDoc detalhado:
+
+| Camada | Símbolos |
+|---|---|
+| `domain/shared` | `Result` (todos os métodos) |
+| `domain/vehicle` | `Vin` (`create`, `computeCheckDigit`, `withCheckDigit`, `modelYear`, `formatted`…) |
+| `domain/geo` | `GeoPoint` (`create`, `distanceTo`, `bearingTo`) |
+| `domain/service` | `MaintenancePlanner` (`forecast`, `statusFor`) |
+| `domain/analytics` | `AnomalyDetector` (`segments`, `trendBreak`) |
+| `domain/retention` | `LogisticChurnModel`, `RiskScore`, `Lead.registerContact` |
+| `application/use-cases` | `BookAppointment`, `CancelAppointment`, `ListDealersNearby` |
+| `infrastructure` | `SyncEngine` (`start`, `stop`, `setOnline`, `sync`, `subscribe`…), `AppContainer` |
+| `presentation` | `useResult`, `Translator`, `Formatters` (`signedPoints`, `relative`), `BookingDraft`, `unwrapAngle` |
+
+Exemplo real (`Vin.modelYear`):
+
+```ts
+/**
+ * Decodes the model year from the 10th character. The code repeats every 30 years, so the
+ * result is the most recent cycle that is not after `referenceYear + 1` (next model year).
+ *
+ * @param referenceYear - Usually the current year.
+ * @returns The model year, or `null` when the 10th character is not a year code.
+ * @example
+ * Vin.restore('9BFZZZ540PB123456').modelYear(2026);  // 2023
+ */
+```
+
+---
+
+## 14. Licença
 
 Projeto acadêmico (FIAP × Ford, 2026). Marcas e nomes de concessionárias/clientes usados nos dados são fictícios ou ilustrativos.
