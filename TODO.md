@@ -1,5 +1,7 @@
 # PITLANE · Ford Challenge — Sprint 3 (Mobile Development & IoT) — TODO
 
+> **Retomando? Leia primeiro [`HANDOFF.md`](./HANDOFF.md)** (estado atual, próximos passos, comandos e gotchas).
+>
 > **Como retomar numa sessão nova, sem contexto:** leia a seção _0. Contexto_, depois procure o primeiro
 > item `[ ]` na _Seção 2_. Cada fase termina num **GATE** com critérios objetivos. Um gate só fica `✅` com
 > evidência colada no _Log de evidências_ (Seção 3). Todo commit vai no nome do João (config git local), **sem
@@ -108,18 +110,18 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - ✅ **GATE P4 (aprovado)** — use cases testados (integração via container real + sql.js)
 
 ### P5 — Design system + i18n + tema
-- [ ] P5.1 Tokens: paleta Ford (light/dark), tipografia (Barlow / Barlow Condensed / JetBrains Mono), spacing, radii, elevation, motion
-- [ ] P5.2 `ThemeProvider` (system/light/dark) + `useTheme`
-- [ ] P5.3 Primitivos: `Text`, `Button` (primary/secondary/ghost/outline/danger × sm/md/lg), `IconButton`, `Card`, `Badge`, `Chip`, `Input`, `SegmentedControl`, `Switch`, `ListItem`, `Avatar`, `Divider`, `Skeleton`, `EmptyState`, `Screen`, `Toast`, `ProgressRing`, `Sparkline`, `BarList`, `Icon`, `QrCode`, `PressableScale`
-- [ ] P5.4 i18n tipado `en`/`pt-BR` + formatters
-- [ ] P5.5 Haptics semânticos (`tap`, `select`, `success`, `warning`, `heartbeat`)
+- [x] P5.1 Tokens: paleta Ford (light/dark), tipografia (Barlow / Barlow Condensed / JetBrains Mono), spacing, radii, elevation, motion
+- [x] P5.2 `ThemeProvider` (system/light/dark) + `useTheme`
+- [~] P5.3 Primitivos: `Text`, `Button` (primary/secondary/ghost/outline/danger × sm/md/lg), `IconButton`, `Card`, `Badge`, `Chip`, `Input`, `SegmentedControl`, `Switch`, `ListItem`, `Avatar`, `Divider`, `Skeleton`, `EmptyState`, `Screen`, `Toast`, `ProgressRing`, `Sparkline`, `BarList`, `Icon`, `QrCode`, `PressableScale`
+- [x] P5.4 i18n tipado `en`/`pt-BR` + formatters
+- [x] P5.5 Haptics semânticos (`tap`, `select`, `success`, `warning`, `heartbeat`)
 - ✅ **GATE P5** — todos os componentes com testes de render/variantes
 
 ### P6 — Features Owner
-- [ ] P6.1 Sign-in (intro animada, escolha de persona, RHF+Zod, biometria)
-- [ ] P6.2 Tab bar flutuante própria (indicador animado + haptic)
-- [ ] P6.3 Garage (hero do veículo, anel de saúde, próxima revisão prevista, ticket do agendamento, ofertas)
-- [ ] P6.4 Booking (modal multi-step: serviço → concessionária por distância → data/slot → revisão → confirmação animada)
+- [~] P6.1 Sign-in (intro animada, escolha de persona, RHF+Zod, biometria)
+- [~] P6.2 Tab bar flutuante própria (indicador animado + haptic)
+- [~] P6.3 Garage (hero do veículo, anel de saúde, próxima revisão prevista, ticket do agendamento, ofertas)
+- [~] P6.4 Booking (modal multi-step: serviço → concessionária por distância → data/slot → revisão → confirmação animada)
 - [ ] P6.5 Service Pass (formSheet com QR para check-in)
 - [ ] P6.6 History (timeline)
 - [ ] P6.7 Dealers (lista por distância + **bússola** apontando pra concessionária via heading do GPS)
@@ -172,3 +174,6 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
   - Application: `SignIn` (+`LoginThrottle` anti brute-force: 5 falhas/5min → lock 60s), `RestoreSession`, `SignOut`, `GetGarage`, `GetServiceTimeline`, `GetVehicleDetail`, `ListDealersNearby` (GPS→fallback casa), `GetAvailability`, `BookAppointment` (transação: agendamento + outbox + **fecha o loop de retenção** movendo o lead p/ `scheduled`), `CancelAppointment`, `GetServicePass`, `RegisterVehicleByVin`, `GetPulse`, `GetRetentionRadar`, `GetLeadDetail`, `ContactLead` (LGPD: exige consentimento), `UpdateLeadStatus`. RBAC em todo use case (`authorize`). `AppContainer` = composition root.
   - **Calibração (probe com 640 veículos):** Service Share rede 56,5% · Pinheiros 62,9% · **Guarulhos 25% → anomalia z=−3,02** · 26 leads em Pinheiros (6 low c/ pipeline, 8 medium, 2 high, 10 critical) · R$ 17,1 mil/ano em risco. Coeficientes recalibrados (saturavam em 99%) e next-best-action com **prioridade de playbook** (causa específica > lapso genérico) → ações diversificadas. Ana/Territory = `winBackOffer` (fez serviço fora da rede).
   - **Evidência:** 195 testes · cobertura global **99,76% stmts / 98,65% branches / 99,87% funcs / 99,92% lines** · tsc + eslint limpos.
+- **2026-09-25 · P5/P6 (parcial — sessão interrompida pelo usuário, ver `HANDOFF.md`)** — Escrito e **sem testes ainda**: design system completo (`src/presentation/design-system`: tokens palette/tipografia Barlow+Barlow Condensed+JetBrains Mono/spacing/motion, `Theme.for(scheme)` light/dark, `makeStyles`, 45 ícones SVG próprios, Text, Button (7 variantes × 3 tamanhos, inclui `inverse`), IconButton, Card, Badge, Chip, SegmentedControl, TextField+FormTextField (RHF), Switch, ListItem, Avatar/Divider, Screen/ScreenHeader/SectionHeader/Skeleton/LoadingState/EmptyState/StatTile, ToastHost/ConfirmDialog, Gauge (tacômetro 270° c/ redline+agulha), TrendChart, BarList, QrCode (matriz pura do `qrcode/lib/core`), PitStripe/Wordmark/AnimatedNumber/Stepper); i18n tipado EN/PT-BR (`Translator`, `Formatters`); stores Zustand (preferências persistidas no `expo-sqlite/kv-store`, sessão, toasts); `AppRoot` (fonts, bootstrap, restore JWT, sync start, lock biométrico em background); rotas `_layout` (Stack.Protected por papel), `index`, `sign-in`, `(owner)/_layout`, `(owner)/garage`, `(advisor)/_layout`, `booking`; features sign-in, garage (+presenter), booking (+`BookingDraft` imutável + presenter).
+  - **Evidência:** `tsc` limpo · `eslint` limpo · 195 testes (camadas domain/app/infra) verdes · `npx expo export --platform android` gerou bundle Hermes (5,5 MB) sem erro · system image `android-35;google_apis;x86_64` + cmdline-tools instalados em `~/Android/Sdk` (sem AVD criado ainda).
+  - ⚠️ `npm run test:cov` vai **falhar o threshold 95%** até a camada `src/presentation` + `src/app` ganhar testes (P10).
