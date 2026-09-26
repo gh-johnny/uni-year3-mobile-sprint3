@@ -28,15 +28,15 @@ export class LogisticChurnModel implements ChurnModel {
   static calibrated(): LogisticChurnModel {
     return new LogisticChurnModel(
       {
-        intercept: -3.4,
-        monthsSinceService: 0.11,
-        warrantyExpired: 0.9,
-        vehicleAge: 0.1,
-        overdue: 0.65,
-        outsideVisits: 0.6,
-        distance: 0.028,
-        connected: -0.7,
-        detractor: 0.95,
+        intercept: -3.6,
+        monthsSinceService: 0.075,
+        warrantyExpired: 0.8,
+        vehicleAge: 0.08,
+        overdue: 0.5,
+        outsideVisits: 0.55,
+        distance: 0.025,
+        connected: -0.6,
+        detractor: 0.85,
       },
       '2026.09',
     );

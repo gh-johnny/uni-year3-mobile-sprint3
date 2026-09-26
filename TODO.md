@@ -92,20 +92,20 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - ✅ **GATE P2 (aprovado)** — domain 100% coberto, tsc verde
 
 ### P3 — Infrastructure
-- [ ] P3.1 Port `SqlDatabase` + adapter `ExpoSqliteDatabase` + `SqlJsDatabase` (testes)
-- [ ] P3.2 Migrations versionadas (`PRAGMA user_version`)
-- [ ] P3.3 Seed determinístico (`SeededRandom`, `FleetGenerator`) + seeder idempotente
-- [ ] P3.4 Repositories SQLite (+ mappers row↔domain)
-- [ ] P3.5 Outbox + `SyncEngine` (backoff exponencial) + `RemoteGateway` (HTTP / simulado)
-- [ ] P3.6 Adapters de plataforma: `SecureSessionStorage`, `PasswordHasher` (expo-crypto), `HapticsService`, `LocationService`, `BiometricService`, `NetworkMonitor`, `CameraPermission`
-- ✅ **GATE P3** — repos testados com SQL real; cobertura ≥95%
+- [x] P3.1 Port `SqlDatabase` + adapter `ExpoSqliteDatabase` + `SqlJsDatabase` (testes)
+- [x] P3.2 Migrations versionadas (`PRAGMA user_version`)
+- [x] P3.3 Seed determinístico (`SeededRandom`, `FleetGenerator`) + seeder idempotente
+- [x] P3.4 Repositories SQLite (+ mappers row↔domain)
+- [x] P3.5 Outbox + `SyncEngine` (backoff exponencial) + `RemoteGateway` (HTTP / simulado)
+- [x] P3.6 Adapters de plataforma: `SecureSessionStorage`, `PasswordHasher` (expo-crypto), `HapticsService`, `LocationService`, `BiometricService`, `NetworkMonitor`, `CameraPermission`
+- ✅ **GATE P3 (aprovado)** — repos testados com SQL real; cobertura ≥95%
 
 ### P4 — Application (use cases)
-- [ ] P4.1 Auth: `SignIn`, `SignOut`, `RestoreSession`, `UnlockWithBiometrics`
-- [ ] P4.2 Owner: `GetGarage`, `ListDealersNearby`, `BookAppointment`, `CancelAppointment`, `GetServiceHistory`, `RegisterVehicleByVin`, `GetOffers`
-- [ ] P4.3 Advisor: `GetServiceSharePulse`, `GetRetentionRadar`, `GetLeadDetail`, `LogOutreach`, `AdvanceLead`
-- [ ] P4.4 `AppContainer` (composition root) + `EventBus`
-- ✅ **GATE P4** — use cases testados com fakes
+- [x] P4.1 Auth: `SignIn`, `SignOut`, `RestoreSession`, `UnlockWithBiometrics`
+- [x] P4.2 Owner: `GetGarage`, `ListDealersNearby`, `BookAppointment`, `CancelAppointment`, `GetServiceHistory`, `RegisterVehicleByVin`, `GetOffers`
+- [x] P4.3 Advisor: `GetServiceSharePulse`, `GetRetentionRadar`, `GetLeadDetail`, `LogOutreach`, `AdvanceLead`
+- [x] P4.4 `AppContainer` (composition root) + `EventBus`
+- ✅ **GATE P4 (aprovado)** — use cases testados (integração via container real + sql.js)
 
 ### P5 — Design system + i18n + tema
 - [ ] P5.1 Tokens: paleta Ford (light/dark), tipografia (Barlow / Barlow Condensed / JetBrains Mono), spacing, radii, elevation, motion
@@ -168,3 +168,7 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 - **2026-09-25 · P2** — Domain em TS puro (zero import de RN): shared kernel (`Result`, `DomainError`, `ValueObject`, `Entity`, `Collection` genérica com self-type, `Specification`, `Clock`, `Money`, `Percentage`), VOs (`Vin` c/ dígito verificador ISO 3779 + WMI Ford→país + ano-modelo; `GeoPoint` Haversine/bearing; `Mileage`, `Email` c/ máscara LGPD, `TimeSlot`), entidades (`Vehicle`, `Dealer`, `Customer`, `User`+`Role` RBAC, `ServiceRecord`, `Appointment` state machine, `Lead` pipeline, `Outreach`), collections (`Vehicles`, `Dealers`, `ServiceHistory`, `Appointments`, `Leads`), serviços (`MaintenancePlanner` 2 relógios km/tempo, `SlotPlanner` c/ almoço/sábado/baias, `ServiceShareCalculator` 4 cortes + tendência, `AnomalyDetector` z-score, `ChurnFeatureExtractor` + `LogisticChurnModel` explicável, `NextBestActions`, `OfferEngine`), builders (`AppointmentBuilder` + test data builders em `__fixtures__`). Ficha técnica **Ranger Raptor** idêntica ao slide do kick-off (completude 100%, campos ausentes explícitos → alinhado ao Desafio 01 também).
   - **Evidência:** 104 testes · cobertura domain **100% stmts / 100% branches / 100% funcs / 100% lines** · `tsc` limpo · lint ok. TZ dos testes fixado em `America/Sao_Paulo` (jest.config.js).
   - Dica: rodar `node node_modules/jest/bin/jest.js` direto mostra a saída crua (o `npx` passa por wrapper que resume).
+- **2026-09-25 · P3+P4** — Infra: port `SqlDatabase` (expo-sqlite em device / **sql.js WASM nos testes = SQL real**), `Migrator` via `PRAGMA user_version` (transação por migração, rollback testado), 9 repositórios SQLite com mappers, `FleetGenerator` determinístico (Mulberry32; 12 concessionárias fictícias na Grande SP; ~640 veículos; histórico simulado com lealdade × qualidade da concessionária², garantia, detratores, veículos conectados revelando serviço fora da rede), `DatabaseSeeder` (INSERT multi-linha em chunks, idempotente, reset). Segurança: hash SHA-256 salgado+iterado, **JWT HS256 próprio** (HMAC RFC 2104 sobre SHA-256 nativo, verificação de assinatura em tempo constante + `exp`; validado contra `crypto.createHmac` do Node), sessão no SecureStore (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), segredo por instalação. **Outbox + SyncEngine** (lote, backoff exponencial c/ jitter, sem concorrência, offline→pausa, reconexão→drena) com gateway HTTP (`POST /sync/events`, Bearer JWT) ou simulado (latência + 15% falha). Adapters nativos: localização (fallback timeout/negado) + bússola (heading), haptics semânticos (inclui "heartbeat"), biometria, rede.
+  - Application: `SignIn` (+`LoginThrottle` anti brute-force: 5 falhas/5min → lock 60s), `RestoreSession`, `SignOut`, `GetGarage`, `GetServiceTimeline`, `GetVehicleDetail`, `ListDealersNearby` (GPS→fallback casa), `GetAvailability`, `BookAppointment` (transação: agendamento + outbox + **fecha o loop de retenção** movendo o lead p/ `scheduled`), `CancelAppointment`, `GetServicePass`, `RegisterVehicleByVin`, `GetPulse`, `GetRetentionRadar`, `GetLeadDetail`, `ContactLead` (LGPD: exige consentimento), `UpdateLeadStatus`. RBAC em todo use case (`authorize`). `AppContainer` = composition root.
+  - **Calibração (probe com 640 veículos):** Service Share rede 56,5% · Pinheiros 62,9% · **Guarulhos 25% → anomalia z=−3,02** · 26 leads em Pinheiros (6 low c/ pipeline, 8 medium, 2 high, 10 critical) · R$ 17,1 mil/ano em risco. Coeficientes recalibrados (saturavam em 99%) e next-best-action com **prioridade de playbook** (causa específica > lapso genérico) → ações diversificadas. Ana/Territory = `winBackOffer` (fez serviço fora da rede).
+  - **Evidência:** 195 testes · cobertura global **99,76% stmts / 98,65% branches / 99,87% funcs / 99,92% lines** · tsc + eslint limpos.

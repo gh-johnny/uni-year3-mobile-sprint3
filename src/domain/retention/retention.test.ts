@@ -149,6 +149,16 @@ describe('NextBestActions', () => {
     expect(NextBestActions.for(aScore(0.8, feature)).key).toBe(action);
   });
 
+  it('prefers specific causes over generic lapse among the top drivers', () => {
+    const score = RiskScore.of(0.9, [
+      { feature: 'monthsSinceService', value: 30, impact: 2.2 },
+      { feature: 'overdue', value: 2, impact: 1 },
+      { feature: 'outsideVisits', value: 1, impact: 0.55 },
+      { feature: 'detractor', value: 1, impact: 0.1 },
+    ]);
+    expect(NextBestActions.for(score).key).toBe('winBackOffer');
+  });
+
   it('falls back to a check-up invite without positive drivers', () => {
     expect(NextBestActions.for(RiskScore.of(0.1, [])).key).toBe('checkupInvite');
     expect(NextBestActions.get('serviceRecovery').channel).toBe('call');

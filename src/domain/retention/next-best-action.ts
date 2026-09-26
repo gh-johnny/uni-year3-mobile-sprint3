@@ -39,12 +39,18 @@ const BY_DRIVER: Readonly<Partial<Record<ChurnFeature, NextBestActionKey>>> = {
   outsideVisits: 'winBackOffer',
 };
 
-/** Picks the retention playbook that addresses the strongest churn driver. */
+/**
+ * Playbook priority: a *specific* cause (unhappy customer, work done elsewhere,
+ * warranty over, too far away) beats the generic "hasn't come back in a while".
+ */
+const PRIORITY: readonly ChurnFeature[] = ['detractor', 'outsideVisits', 'warrantyExpired', 'distance', 'monthsSinceService', 'overdue'];
+
+/** Picks the retention playbook addressing the most actionable of the top-3 churn drivers. */
 export const NextBestActions = {
   for(score: RiskScore): NextBestAction {
-    const topDriver = score.drivers(1)[0];
-    const key = (topDriver && BY_DRIVER[topDriver.feature]) ?? 'checkupInvite';
-    return PLAYBOOK[key];
+    const top = score.drivers(3).map((driver) => driver.feature);
+    const feature = PRIORITY.find((candidate) => top.includes(candidate));
+    return PLAYBOOK[feature ? (BY_DRIVER[feature] as NextBestActionKey) : 'checkupInvite'];
   },
   get(key: NextBestActionKey): NextBestAction {
     return PLAYBOOK[key];
