@@ -67,7 +67,7 @@ export function AnimatedNumber({ value, format, duration = 800, ...textProps }: 
 export function Stepper({ total, current }: { total: number; current: number }) {
   const theme = useTheme();
   return (
-    <View style={{ flexDirection: 'row', gap: 6 }} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: total, now: current + 1 }}>
+    <View style={{ flexDirection: 'row', gap: 6 }} accessible accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: total, now: current + 1 }}>
       {Array.from({ length: total }, (_, index) => (
         <View
           key={index}
