@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
-import { act, renderRouter, screen, userEvent, waitFor } from 'expo-router/testing-library';
+import { userEvent } from '@testing-library/react-native';
+import { act, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 
 import { createTestServices, signInAs, TestServices } from '@/test-utils/render';
 

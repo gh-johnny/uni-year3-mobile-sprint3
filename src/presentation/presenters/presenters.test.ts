@@ -135,6 +135,10 @@ describe('DealersPresenter', () => {
     expect(unwrapAngle(90, 100)).toBe(100);
     expect(arrowRotation(120, 30)).toBe(90);
   });
+
+  it('marks the arrow maths as a worklet: it runs on the UI thread, where plain JS functions crash', () => {
+    expect((arrowRotation as unknown as { __workletHash?: number }).__workletHash).toEqual(expect.any(Number));
+  });
 });
 
 describe('VehiclePresenter', () => {

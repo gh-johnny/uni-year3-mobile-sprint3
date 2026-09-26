@@ -55,12 +55,14 @@ export class Formatters {
     );
   }
 
-  /** `R$ 17,1 mil` / `R$17.1K` */
+  /**
+   * `R$ 17,1 mil` / `R$17.1K`. Built by hand: Hermes on Android ignores `notation: 'compact'`
+   * and would print the full amount.
+   */
   compactCurrency(money: Money): string {
-    return this.safe(
-      () => new Intl.NumberFormat(this.locale, { style: 'currency', currency: money.currency, notation: 'compact', maximumFractionDigits: 1 }).format(money.amount),
-      () => `R$ ${(money.amount / 1000).toFixed(1)}k`,
-    );
+    if (Math.abs(money.amount) < 1000) return this.currency(money, 0);
+    const thousands = this.number(money.amount / 1000, 1);
+    return this.locale === 'pt-BR' ? `R$ ${thousands} mil` : `R$${thousands}K`;
   }
 
   km(value: number): string {

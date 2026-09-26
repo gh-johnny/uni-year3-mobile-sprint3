@@ -19,12 +19,12 @@ jest.mock('expo-router', () => require('@/test-utils/router-mock').expoRouterMoc
 jest.mock('expo-linking', () => ({ openURL: jest.fn(async () => true) }));
 jest.mock('expo-camera', () => {
   const { View } = require('react-native');
-  const camera = { permission: { granted: true }, request: jest.fn(), onScan: null };
+  const camera = { permission: { granted: true }, request: jest.fn(), onScan: null as unknown };
   return {
     __esModule: true,
     __camera: camera,
     useCameraPermissions: () => [camera.permission, camera.request],
-    CameraView: (props) => {
+    CameraView: (props: { onBarcodeScanned: unknown }) => {
       camera.onScan = props.onBarcodeScanned;
       return <View testID="camera" />;
     },

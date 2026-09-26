@@ -379,6 +379,19 @@ describe('Data visualisation', () => {
     expect(screen.getByText('60%')).toBeOnTheScreen();
   });
 
+  it('reveals the plot with a fade (a clip-path reveal stayed empty on Android)', async () => {
+    jest.useFakeTimers();
+    try {
+      await show(<TrendChart testID="chart" series={[{ key: 'a', label: 'A', values: [0.4, 0.6], color: '#00f' }]} />);
+      await fireEvent(screen.getByTestId('chart'), 'layout', { nativeEvent: { layout: { width: 300, height: 170, x: 0, y: 0 } } });
+      expect(screen.getByTestId('chart-plot')).toHaveAnimatedStyle({ opacity: 0 });
+      await act(async () => jest.advanceTimersByTime(1200));
+      expect(screen.getByTestId('chart-plot')).toHaveAnimatedStyle({ opacity: 1 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('smooth path handles empty, single and multi-point series', () => {
     expect(smoothPath([])).toBe('');
     expect(smoothPath([{ x: 1, y: 2 }])).toBe('M 1 2');

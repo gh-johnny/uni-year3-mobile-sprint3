@@ -27,8 +27,15 @@ export const unwrapAngle = (previous: number, next: number): number => {
   return previous + delta;
 };
 
-/** Arrow rotation on screen: where the dealer is relative to where the phone points. */
-export const arrowRotation = (bearing: number, heading: number): number => bearing - heading;
+/**
+ * Arrow rotation on screen: where the dealer is relative to where the phone points.
+ * Runs inside a Reanimated worklet (UI thread), hence the directive: a plain JS function
+ * would be a "remote function" and crash the app when called synchronously from there.
+ */
+export const arrowRotation = (bearing: number, heading: number): number => {
+  'worklet';
+  return bearing - heading;
+};
 
 export class DealersPresenter {
   static present(nearby: NearbyDealers, { t, f }: I18n, now: Date): DealersViewModel {

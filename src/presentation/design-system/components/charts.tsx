@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { LayoutChangeEvent, View } from 'react-native';
-import Animated, { Easing, useAnimatedProps, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
-import Svg, { ClipPath, Defs, G, Line, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
+import Svg, { Defs, G, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 
 import { useTheme } from '../theme/use-theme';
 import { motion } from '../tokens/tokens';
 import { Text } from './text';
-
-const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 export type ChartSeries = { key: string; label: string; values: readonly number[]; color: string; dashed?: boolean; area?: boolean };
 
@@ -38,18 +36,20 @@ export type TrendChartProps = {
   testID?: string;
 };
 
-/** Multi-series trend chart with gradient area and a left-to-right "draw" reveal. */
+/** Multi-series trend chart with gradient area and a fade/rise-in reveal. */
 export function TrendChart({ series, labels = [], height = 170, formatValue, testID }: TrendChartProps) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
   const reveal = useSharedValue(0);
 
+  // Replays only when the data changes, not whenever the parent re-renders with a fresh array.
+  const signature = series.map((entry) => entry.values.join(',')).join('|');
   useEffect(() => {
     reveal.value = 0;
     reveal.value = withTiming(1, { duration: 900, easing: Easing.out(Easing.cubic) });
-  }, [series, reveal]);
+  }, [signature, reveal]);
 
-  const clipProps = useAnimatedProps(() => ({ width: Math.max(0, width * reveal.value) }));
+  const revealStyle = useAnimatedStyle(() => ({ opacity: reveal.value, transform: [{ translateY: (1 - reveal.value) * 10 }] }));
 
   const all = series.flatMap((entry) => entry.values);
   const min = Math.max(0, Math.min(...all) - 0.05);
@@ -65,37 +65,36 @@ export function TrendChart({ series, labels = [], height = 170, formatValue, tes
   return (
     <View testID={testID} onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)} style={{ height }}>
       {width > 0 ? (
-        <Svg width={width} height={height}>
-          <Defs>
-            <ClipPath id="reveal">
-              <AnimatedRect x={0} y={0} height={height} animatedProps={clipProps} />
-            </ClipPath>
-            {series.map((entry) => (
-              <LinearGradient key={entry.key} id={`area-${entry.key}`} x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={entry.color} stopOpacity={0.28} />
-                <Stop offset="1" stopColor={entry.color} stopOpacity={0} />
-              </LinearGradient>
+        <Animated.View testID={testID ? `${testID}-plot` : undefined} style={[{ position: 'absolute', top: 0, left: 0 }, revealStyle]}>
+          <Svg width={width} height={height}>
+            <Defs>
+              {series.map((entry) => (
+                <LinearGradient key={entry.key} id={`area-${entry.key}`} x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor={entry.color} stopOpacity={0.28} />
+                  <Stop offset="1" stopColor={entry.color} stopOpacity={0} />
+                </LinearGradient>
+              ))}
+            </Defs>
+            {[0.25, 0.5, 0.75].map((fraction) => (
+              <Line key={fraction} x1={0} x2={width} y1={chartHeight * fraction} y2={chartHeight * fraction} stroke={theme.colors.border} strokeDasharray="3 5" />
             ))}
-          </Defs>
-          {[0.25, 0.5, 0.75].map((fraction) => (
-            <Line key={fraction} x1={0} x2={width} y1={chartHeight * fraction} y2={chartHeight * fraction} stroke={theme.colors.border} strokeDasharray="3 5" />
-          ))}
-          <G clipPath="url(#reveal)">
-            {series.map((entry) => {
-              const points = toPoints(entry.values);
-              const line = smoothPath(points);
-              const lastPoint = points[points.length - 1];
-              return (
-                <G key={entry.key}>
-                  {entry.area && lastPoint ? (
-                    <Path d={`${line} L ${lastPoint.x} ${chartHeight} L 0 ${chartHeight} Z`} fill={`url(#area-${entry.key})`} />
-                  ) : null}
-                  <Path d={line} stroke={entry.color} strokeWidth={entry.dashed ? 1.75 : 2.75} strokeDasharray={entry.dashed ? '5 6' : undefined} fill="none" strokeLinecap="round" />
-                </G>
-              );
-            })}
-          </G>
-        </Svg>
+            <G>
+              {series.map((entry) => {
+                const points = toPoints(entry.values);
+                const line = smoothPath(points);
+                const lastPoint = points[points.length - 1];
+                return (
+                  <G key={entry.key}>
+                    {entry.area && lastPoint ? (
+                      <Path d={`${line} L ${lastPoint.x} ${chartHeight} L 0 ${chartHeight} Z`} fill={`url(#area-${entry.key})`} />
+                    ) : null}
+                    <Path d={line} stroke={entry.color} strokeWidth={entry.dashed ? 1.75 : 2.75} strokeDasharray={entry.dashed ? '5 6' : undefined} fill="none" strokeLinecap="round" />
+                  </G>
+                );
+              })}
+            </G>
+          </Svg>
+        </Animated.View>
       ) : null}
       {labels.length > 0 ? (
         <View style={{ position: 'absolute', bottom: 0, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between' }}>

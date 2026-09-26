@@ -30,6 +30,8 @@ export function SyncScreen() {
     invalidateOn: ['appointment.booked', 'appointment.cancelled', 'vehicle.registered', 'lead.updated', 'sync.completed', 'data.reset'],
   });
 
+  // The engine's clock resets with the process; the outbox remembers what was already delivered.
+  const lastSynced = state.lastSyncedAt ?? events.data?.find((event) => event.sentAt)?.sentAt ?? null;
   const visual = STATUS_VISUAL[state.status];
   const tone = theme.tone(visual.tone);
   const now = container.clock.now();
@@ -59,7 +61,7 @@ export function SyncScreen() {
               {t('sync.pending', { count: state.pending })}
             </Text>
             <Text variant="caption" color="textSubtle">
-              {state.lastSyncedAt ? t('sync.lastSynced', { when: `${f.relative(state.lastSyncedAt, now)} · ${f.time(state.lastSyncedAt)}` }) : t('sync.never')}
+              {lastSynced ? t('sync.lastSynced', { when: `${f.relative(lastSynced, now)} · ${f.time(lastSynced)}` }) : t('sync.never')}
             </Text>
           </View>
         </View>

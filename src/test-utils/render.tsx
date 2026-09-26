@@ -90,10 +90,9 @@ export async function createTestServices(options: Parameters<typeof createTestCo
 /** Signs in the seeded demo account of a persona (Ana = owner, Carlos = advisor) and starts a session. */
 export async function signInAs(services: TestServices, role: RoleKey): Promise<User> {
   const result = await services.container.useCases.signIn.execute(DEMO_ACCOUNTS[role]);
-  const user = result.getOrElse(null);
-  if (!user) throw new Error(`could not sign in as ${role}`);
-  useSession.getState().signedIn(user);
-  return user;
+  if (result.isFail()) throw new Error(`could not sign in as ${role}: ${result.error.code}`);
+  useSession.getState().signedIn(result.value);
+  return result.value;
 }
 
 const METRICS = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 47, left: 0, right: 0, bottom: 34 } };

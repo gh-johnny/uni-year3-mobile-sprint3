@@ -92,7 +92,9 @@ describe('Formatters', () => {
   it('formats money and distances', () => {
     expect(br.currency(Money.brl(1234.5))).toContain('1.234,50');
     expect(f.currency(Money.brl(90), 0)).toContain('90');
-    expect(f.compactCurrency(Money.brl(17100))).toMatch(/17/);
+    expect(f.compactCurrency(Money.brl(17403.6))).toBe('R$17.4K');
+    expect(br.compactCurrency(Money.brl(17403.6))).toBe('R$ 17,4 mil');
+    expect(f.compactCurrency(Money.brl(815))).toContain('815');
     expect(f.km(12345.6)).toBe('12,346 km');
     expect(f.distance(2.94)).toBe('2.9 km');
     expect(f.distance(14.2)).toBe('14 km');
@@ -132,7 +134,7 @@ describe('Formatters', () => {
       const fresh = Formatters.for('en');
       expect(fresh.number(3.14159, 2)).toBe('3.14');
       expect(fresh.currency(Money.brl(10))).toBe('R$ 10.00');
-      expect(fresh.compactCurrency(Money.brl(17100))).toBe('R$ 17.1k');
+      expect(fresh.compactCurrency(Money.brl(17100))).toBe('R$17.1K');
       expect(fresh.date(now)).toBe('2026-09-25');
       expect(fresh.weekday(now)).toBe('5');
       expect(fresh.month(now)).toBe('9');
