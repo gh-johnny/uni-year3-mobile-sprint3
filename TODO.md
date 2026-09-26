@@ -112,53 +112,53 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
 ### P5 — Design system + i18n + tema
 - [x] P5.1 Tokens: paleta Ford (light/dark), tipografia (Barlow / Barlow Condensed / JetBrains Mono), spacing, radii, elevation, motion
 - [x] P5.2 `ThemeProvider` (system/light/dark) + `useTheme`
-- [~] P5.3 Primitivos: `Text`, `Button` (primary/secondary/ghost/outline/danger × sm/md/lg), `IconButton`, `Card`, `Badge`, `Chip`, `Input`, `SegmentedControl`, `Switch`, `ListItem`, `Avatar`, `Divider`, `Skeleton`, `EmptyState`, `Screen`, `Toast`, `ProgressRing`, `Sparkline`, `BarList`, `Icon`, `QrCode`, `PressableScale`
+- [x] P5.3 Primitivos: `Text`, `Button` (primary/secondary/ghost/outline/danger × sm/md/lg), `IconButton`, `Card`, `Badge`, `Chip`, `Input`, `SegmentedControl`, `Switch`, `ListItem`, `Avatar`, `Divider`, `Skeleton`, `EmptyState`, `Screen`, `Toast`, `ProgressRing`, `Sparkline`, `BarList`, `Icon`, `QrCode`, `PressableScale`
 - [x] P5.4 i18n tipado `en`/`pt-BR` + formatters
 - [x] P5.5 Haptics semânticos (`tap`, `select`, `success`, `warning`, `heartbeat`)
-- ✅ **GATE P5** — todos os componentes com testes de render/variantes
+- ✅ **GATE P5 (aprovado)** — todos os componentes com testes de render/variantes
 
 ### P6 — Features Owner
-- [~] P6.1 Sign-in (intro animada, escolha de persona, RHF+Zod, biometria)
-- [~] P6.2 Tab bar flutuante própria (indicador animado + haptic)
-- [~] P6.3 Garage (hero do veículo, anel de saúde, próxima revisão prevista, ticket do agendamento, ofertas)
-- [~] P6.4 Booking (modal multi-step: serviço → concessionária por distância → data/slot → revisão → confirmação animada)
-- [~] P6.5 Service Pass (formSheet com QR para check-in)
-- [~] P6.6 History (timeline)
-- [~] P6.7 Dealers (lista por distância + **bússola** apontando pra concessionária via heading do GPS)
-- [~] P6.8 VIN scan (câmera + digitação manual validada)
-- [~] P6.9 Vehicle detail (ficha técnica — Ranger Raptor)
-- ✅ **GATE P6** — fluxos Owner testados (render + navegação)
+- [x] P6.1 Sign-in (intro animada, escolha de persona, RHF+Zod, biometria)
+- [x] P6.2 Tab bar flutuante própria (indicador animado + haptic)
+- [x] P6.3 Garage (hero do veículo, anel de saúde, próxima revisão prevista, ticket do agendamento, ofertas)
+- [x] P6.4 Booking (modal multi-step: serviço → concessionária por distância → data/slot → revisão → confirmação animada)
+- [x] P6.5 Service Pass (formSheet com QR para check-in)
+- [x] P6.6 History (timeline)
+- [x] P6.7 Dealers (lista por distância + **bússola** apontando pra concessionária via heading do GPS)
+- [x] P6.8 VIN scan (câmera + digitação manual validada)
+- [x] P6.9 Vehicle detail (ficha técnica — Ranger Raptor)
+- ✅ **GATE P6 (aprovado)** — fluxos Owner testados (render + navegação) e percorridos no emulador
 
 ### P7 — Features Advisor
-- [~] P7.1 Pulse (KPI Service Share animado, tendência 12m, cortes por concessionária/modelo/idade/serviço, anomalias)
-- [~] P7.2 Radar (varredura animada com blips por risco + lista filtrável por Specification)
-- [~] P7.3 Lead sheet (formSheet: explicação do score, ações → outbox, avanço de pipeline)
-- ✅ **GATE P7** — fluxos Advisor testados
+- [x] P7.1 Pulse (KPI Service Share animado, tendência 12m, cortes por concessionária/modelo/idade/serviço, anomalias)
+- [x] P7.2 Radar (varredura animada com blips por risco + lista filtrável por Specification)
+- [x] P7.3 Lead sheet (formSheet: explicação do score, ações → outbox, avanço de pipeline)
+- ✅ **GATE P7 (aprovado)** — fluxos Advisor testados e percorridos no emulador
 
 ### P8 — Transversal
-- [~] P8.1 Settings (tema, idioma, haptics, biometria, sync center, reset demo, sair)
-- [~] P8.2 Design System showcase (tela navegável com todas as variantes)
-- [~] P8.3 Indicador de sync/offline global
-- ✅ **GATE P8**
+- [x] P8.1 Settings (tema, idioma, haptics, biometria, sync center, reset demo, sair)
+- [x] P8.2 Design System showcase (tela navegável com todas as variantes)
+- [x] P8.3 Indicador de sync/offline global
+- ✅ **GATE P8 (aprovado)**
 
 ### P9 — Branding
-- [ ] P9.1 Ícone, adaptive icon, splash (SVG → PNG via `rsvg-convert`)
-- ✅ **GATE P9** — `expo-doctor` verde
+- [x] P9.1 Ícone, adaptive icon, splash (SVG → PNG via `rsvg-convert`; `scripts/branding.sh`)
+- ✅ **GATE P9 (aprovado)** — `expo-doctor` 21/21
 
 ### P10 — Qualidade final
-- [ ] P10.1 Cobertura global ≥95% (statements/branches/functions/lines)
-- [ ] P10.2 `npm run verify` + `npx expo-doctor` verdes
-- ✅ **GATE P10**
+- [x] P10.1 Cobertura global ≥95% (statements/branches/functions/lines)
+- [x] P10.2 `npm run verify` + `npx expo-doctor` verdes
+- ✅ **GATE P10 (aprovado)**
 
 ### P11 — Build APK
-- [ ] P11.1 `eas.json` (perfil `preview` → APK)
-- [ ] P11.2 Build (EAS cloud ou `eas build --local` / gradle) e instalação em emulador
-- [ ] P11.3 Screenshots de todas as telas
-- ✅ **GATE P11** — APK instala e abre
+- [x] P11.1 `eas.json` (perfil `preview` → APK)
+- [x] P11.2 Build local via Gradle (equivalente ao EAS) e instalação em emulador — build via EAS cloud **não executado**
+- [x] P11.3 Screenshots de todas as telas (`docs/screenshots`)
+- ✅ **GATE P11 (aprovado)** — APK instala e abre; fluxos percorridos sem crash no logcat
 
 ### P12 — Documentação
-- [ ] P12.1 README completo (integrantes, desafio, arquitetura com diagrama, telas, como rodar/testar/buildar, decisões)
-- ✅ **GATE P12 / ENTREGA**
+- [x] P12.1 README completo (integrantes, desafio, arquitetura com diagrama, telas, como rodar/testar/buildar, decisões)
+- ✅ **GATE P12 / ENTREGA (aprovado)** — falta apenas subir o APK/README no Teams (27/09/2026)
 
 ---
 
@@ -179,3 +179,10 @@ Pitlane é onde o carro volta pra ser cuidado. App local-first com duas personas
   - ⚠️ `npm run test:cov` vai **falhar o threshold 95%** até a camada `src/presentation` + `src/app` ganhar testes (P10).
 - **2026-09-26 · P6/P7/P8 (telas escritas, testes pendentes)** — Rotas finas (re-export de 1 linha) + features: `history` (timeline agrupada "Booked"/ano, linha de agendamento abre o passe), `dealers` (herói com **bússola**: `heading.watch()` → shared value com `unwrapAngle` p/ girar pelo caminho curto; seta = bearing − heading; "Book here" usa o 1º veículo da garagem, sem veículo → `/scan`), `settings` (tema/idioma/haptics/biometria com prompt ao ligar, sync center, showcase, reset demo com `ConfirmDialog`, sign out — compartilhada por `(owner)/account` e `(advisor)/profile`), `pass` (formSheet: QR do `checkInCode`, cancelar com `ConfirmDialog`), `vehicle` (ficha técnica com campo nulo → `common.notAvailable`), `scan` (`expo-camera` code39/code128/datamatrix/qr/pdf417 + digitação, decode ISO 3779 ao vivo, RHF+Zod, `extractVin` trata prefixo "I" de placas norte-americanas), `pulse` (gauge do Service Share, tendência 12m own×network, 4 cortes com benchmark, anomalias z-score), `radar` (varredura animada Reanimated + blips por tier + filtros por `Specification`), `lead` (formSheet: contribuição por feature, próxima melhor ação, contato→outbox, pipeline só com movimentos aceitos por `Lead.canMoveTo`), `sync` (outbox visível + "Sync now"), `SyncPill` global (P8.3) nos headers Garage/Pulse/Radar, `design-system` (showcase). Presenters puros novos: timeline, dealers, vehicle, pulse, lead/radar; `GaragePresenter.health/subtitle` extraídos p/ reuso. Domínio: `Lead.canMoveTo` (+1 teste). Container expõe `repositories.dealers`.
   - **Evidência:** `tsc` limpo · `eslint src` 0 mensagens · 196 testes verdes (195 + `Lead.canMoveTo`) · `expo export --platform android` OK (Hermes 5,7 MB). ⚠️ Camada `presentation` + `app` ainda **sem testes** (gate 95% pendente, P10) e telas **ainda não exercitadas em emulador**.
+- **2026-09-26 · P5–P12 (fechamento)** — Testes de apresentação: i18n, presenters, stores/hooks, design system (32), telas Owner/Advisor/compartilhadas, casos de borda e **app inteiro** via `expo-router/testing-library` (rotas reais + guards + tab bar + restauração de sessão + lock biométrico) sobre o container real (sql.js). Infra: `src/test-utils/render.tsx` (fakes de biometria/bússola/rede), `router-mock.ts`, mocks globais no `jest/setup.ts`; `standard-navigation` no allowlist de transform. RNTL v14 é **assíncrono em tudo** (`render`, `renderHook`, `fireEvent`, `act`, `unmount`) — `act`/`fireEvent` sem `await` vaza escopo e derruba os testes seguintes.
+  - **Branding (P9):** ícone "P" itálico + hachura de pit-lane em SVG (`assets/branding`) → PNGs via `scripts/branding.sh`.
+  - **Build (P11):** `prebuild` + `gradlew assembleRelease` (arm64-v8a + x86_64): 1º build 28m20s, incremental 19m48s; APK 85 MB. AVD `pitlane` (Pixel 7, Android 15, x86_64, KVM). ⚠️ `expo prebuild` reescreve os scripts `android`/`ios` do `package.json` — reverter com `git checkout package.json`.
+  - **O que só o emulador revelou (todos corrigidos):** (1) **crash em Dealers** — `arrowRotation` era função JS comum chamada num worklet do Reanimated ("Tried to synchronously call a Remote Function") → diretiva `'worklet'`; (2) **gráfico do Pulse vazio** — `ClipPath` com `Rect` animado não reinvalida no Android → reveal por `useAnimatedStyle` (fade); (3) `compactCurrency` mostrava "R$17,403.6" — Hermes ignora `notation:'compact'` → formatação manual ("R$17.4K" / "R$ 17,4 mil"); (4) status bar ilegível no login; (5) "Never synced" com eventos já enviados. Regressões cobertas por teste (`__workletHash`, fade do gráfico, `compactCurrency`). Sign-out sem crash (o `Stack.Protected` remove a rota a tempo).
+  - **Validação em dispositivo (APK release):** login → Garage → Booking (4 passos) → Pass/QR → History → Dealers → Vehicle → Scan manual (VIN registrado, garagem 2→3) → Profile → Sync → Design system; sign-out → Advisor → Pulse (gráfico OK) → Radar (varredura) → Lead sheet (contato → outbox, status Contacted) ; tema escuro e pt-BR conferidos. `logcat` sem `FATAL` no build final.
+  - **Evidência final:** `npm run verify` exit 0 · **348 testes / 25 suítes** · cobertura **99,27% stmts / 95,94% branches / 99,37% funcs / 99,53% linhas** · `tsc` limpo · `eslint` 0 · `expo-doctor` **21/21**.
+  - **Não verificado (sem hardware):** leitura de código de barras com câmera real, seta da bússola girando com o magnetômetro, biometria em device físico. Build via EAS cloud não foi executado (perfil `preview` configurado em `eas.json`).

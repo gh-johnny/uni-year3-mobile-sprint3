@@ -23,54 +23,36 @@ Equipe (README/capa): João Marcelo Furtado Romero RM555199 · Matheus Rivera Mo
 - Meta: **cobertura ≥95%** (threshold global no `jest.config.js`) + `expo-doctor` verde.
 - Hook do ambiente bloqueia `rm -rf` → apagar arquivo a arquivo (`rm arquivo`, `rmdir`).
 
-## 3. Estado atual (fim desta sessão)
+## 3. Estado atual (2026-09-26 — todas as fases P0–P12 fechadas)
 | Fase | Estado |
 |---|---|
-| P0 plano · P1 tooling · P2 domain · P3 infra · P4 application | ✅ commitadas, 195 testes, ~99,8% cobertura nessas camadas |
-| P5 design system / i18n / tema | código escrito, **sem testes** |
-| P6 owner | feito: sign-in, tabs owner, garage, booking (**sem testes**). Faltam: pass, history, dealers, scan, vehicle, account |
-| P7 advisor | **não iniciado** (use cases prontos: `getPulse`, `getRadar`, `getLeadDetail`, `contactLead`, `updateLeadStatus`) |
-| P8–P12 | não iniciados |
+| P0–P4 plano, tooling, domain, infra, application | ✅ |
+| P5–P8 design system, i18n, Owner, Advisor, transversal | ✅ todas as rotas/telas implementadas **e testadas**; percorridas no emulador (APK release) |
+| P9 branding | ✅ `assets/branding/*.svg` → `scripts/branding.sh` |
+| P10 qualidade | ✅ `npm run verify` exit 0 · 348 testes · cobertura 99,3 / 95,9 / 99,4 / 99,5 (stmts/branches/funcs/lines) · `expo-doctor` 21/21 |
+| P11 APK | ✅ build **local (Gradle)**; `eas.json` (perfil `preview`) pronto, mas o **build EAS não foi executado** |
+| P12 README | ✅ com galeria (`docs/screenshots`) |
 
-Verificado agora: `tsc` limpo, `eslint src` limpo, `jest src` 195/195, `expo export --platform android` OK.
+APK entregável: `dist/pitlane.apk` (85 MB, arm64-v8a + x86_64, assinado com a chave de debug do template; `dist/` e `android/` estão no `.gitignore`).
 
-## 4. Próximos passos (ordem sugerida)
-1. **Rotas faltantes** (o `_layout.tsx` raiz já declara todas; cada rota é um re-export de 1 linha como
-   `src/app/booking.tsx`):
-   - `src/app/(owner)/history.tsx` → timeline (`useCases.getTimeline`)
-   - `src/app/(owner)/dealers.tsx` → lista + bússola (`listDealersNearby` + `services.heading.watch()` e
-     `dealer.bearing`; seta = bearing − heading)
-   - `src/app/(owner)/account.tsx` e `src/app/(advisor)/profile.tsx` → mesma tela de Settings
-     (tema/idioma/haptics/biometria via `usePreferences`, sync center, design system, reset demo
-     `container.resetDemoData()`, sign out `useCases.signOut` + `useSession.signedOut`)
-   - `src/app/pass/[id].tsx` (formSheet) → `getServicePass` + `<QrCode value={checkInCode}>` + cancelar
-     (`cancelAppointment` com `ConfirmDialog`)
-   - `src/app/scan.tsx` → `expo-camera` `CameraView` (barcode code39/code128/datamatrix/qr) + entrada manual,
-     form RHF+Zod → `registerVehicle`; decodificar VIN com `Vin` (isFord, assemblyCountry → `countries.*`,
-     modelYear, hasValidCheckDigit). Dicionários já têm todas as chaves `scan.*`.
-   - `src/app/vehicle/[id].tsx` → `getVehicleDetail` + `vehicle.model.specs.entries()` (campo nulo →
-     `common.notAvailable`) + histórico
-   - `src/app/(advisor)/pulse.tsx`, `radar.tsx`, `src/app/lead/[vehicleId].tsx`, `src/app/sync.tsx`,
-     `src/app/design-system.tsx`
-   Todas as strings já existem em `src/presentation/i18n/dictionaries/{en,pt-br}.ts`.
-2. **Testes da camada de apresentação** (para o gate 95%): presenters são puros → testar direto;
-   componentes com RNTL v14 (**`await render()`**, `userEvent` async). Criar `src/test-utils/render.tsx` que
-   embrulha com `ServicesProvider` usando `createTestContainer()` (sql.js real) + fakes de
-   haptics/biometrics/heading/network, e `SafeAreaProvider` com `initialMetrics`. No `jest/setup.ts`
-   adicionar mocks: `expo-sqlite/kv-store` (Map em memória), `expo-localization` (`getLocales`),
-   `react-native-safe-area-context/jest/mock`. Para rotas: `renderRouter` de `expo-router/testing-library`.
-3. **Branding (P9)**: gerar ícone/adaptive/splash em SVG → PNG com `rsvg-convert` (disponível), substituir
-   `assets/images/*` (ainda são do template Expo), rodar `npx expo-doctor`.
-4. **APK (P11)**: criar `eas.json` com perfil `preview` (`android.buildType: "apk"`) e rodar
-   `npm run build:apk` (EAS logado na conta do usuário) **ou** `npx expo prebuild -p android` +
-   `cd android && ./gradlew assembleRelease` (Android SDK/NDK/JDK17 locais). Emulador: system image
-   `system-images;android-35;google_apis;x86_64` já baixada e `/dev/kvm` acessível; falta
-   `avdmanager create avd -n pitlane -k "system-images;android-35;google_apis;x86_64"` (sdkmanager/avdmanager em
-   `~/Android/Sdk/cmdline-tools/latest/bin`) e `emulator -avd pitlane -no-window -gpu swiftshader_indirect`.
-   Screenshots: `adb exec-out screencap -p > docs/screenshots/<tela>.png`.
-5. **README (P12)**: integrantes, desafio, arquitetura (diagrama mermaid das 4 camadas), decisões D1–D12 do
-   TODO, telas com screenshots, como rodar/testar/buildar, modelo de churn (coeficientes em
-   `LogisticChurnModel.calibrated()`), números da calibração (seção P3+P4 do log).
+Ver o log de evidências no fim do `TODO.md` (inclui os 5 defeitos que só o emulador revelou).
+
+## 4. O que falta (fora do código)
+1. **Subir o APK + README/screenshots no Teams** até 27/09/2026 (o enunciado pede a entrega via Teams).
+2. Opcional: rodar `npm run build:apk` (EAS logado) para ter também o artefato "oficial" via EAS Build.
+3. Recomendado: instalar o APK num **device físico** e conferir o que o emulador não cobre — leitura real do
+   código de barras do VIN, seta da bússola girando com o magnetômetro e biometria.
+4. Gravar/roteirizar a demonstração (fluxos: Owner agenda → passe QR; Advisor vê Pulse/Radar → contata lead → outbox).
+
+### Gotchas aprendidos nesta sessão
+- `expo prebuild` reescreve os scripts `android`/`ios` do `package.json` → `git checkout package.json` depois.
+  Builds seguintes: `prebuild` **sem** `--clean` preserva o cache nativo (1º build 28 min, incremental ~20 min).
+- Worklets do Reanimated **não podem chamar funções JS comuns** (crash "Tried to synchronously call a Remote Function"):
+  use a diretiva `'worklet'` ou inline. O Jest não pega isso — só o dispositivo.
+- Hermes/Android ignora `Intl.NumberFormat` com `notation: 'compact'`; `ClipPath` com `Rect` animado não reinvalida no Android.
+- RNTL v14 é assíncrono em tudo: `await` em `render`, `renderHook`, `fireEvent`, `act`, `unmount` (sem `await` o `act` vaza).
+- Emulador headless: `emulator -avd pitlane -no-window -gpu swiftshader_indirect` com `ANDROID_AVD_HOME=~/.config/.android/avd`.
+  `uiautomator dump` falha em telas com animação infinita (Radar) — use toques por coordenada nelas.
 
 ## 5. Mapa do código
 ```
@@ -88,7 +70,7 @@ src/
     hooks/                      useI18n, useResult (reexecuta em eventos de domínio), useFeedback
     presenters/                 domain → view model (garage, booking, shared tones/icons)
     navigation/floating-tab-bar headless tabs expo-router/ui com pílula flutuante
-    features/                   auth, garage, booking (demais pastas criadas vazias)
+    features/                   auth, garage, booking, pass, history, dealers, vehicle, scan, pulse, radar, lead, settings, sync, showcase
   app/                          rotas Expo Router (finas, só re-export)
   test-utils/                   createTestContainer (sql.js + crypto Node), fakes
 ```
@@ -101,7 +83,7 @@ Builder (`AppointmentBuilder`, test data builders), Specification, Strategy (`Ch
 npm run typecheck            # tsc
 npm run lint                 # expo lint
 node node_modules/jest/bin/jest.js src           # testes (saída crua; `npx jest` passa por wrapper que resume)
-npm run test:cov             # cobertura com threshold 95% (hoje falha: presentation sem testes)
+npm run test:cov             # cobertura com threshold 95% (passa: 99,3 / 95,9 / 99,4 / 99,5)
 npx expo-doctor
 npx expo export --platform android --output-dir <tmp>   # checa bundling
 ```
