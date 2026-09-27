@@ -10,6 +10,7 @@ import { NetworkMonitor } from './network';
 
 jest.mock('expo-location', () => ({
   Accuracy: { Balanced: 3 },
+  getForegroundPermissionsAsync: jest.fn(),
   requestForegroundPermissionsAsync: jest.fn(),
   getLastKnownPositionAsync: jest.fn(),
   getCurrentPositionAsync: jest.fn(),
@@ -39,7 +40,10 @@ const network = jest.mocked(Network);
 const fix = (latitude: number, longitude: number) => ({ coords: { latitude, longitude } }) as Location.LocationObject;
 
 describe('ExpoLocationProvider', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    location.getForegroundPermissionsAsync.mockResolvedValue({ status: 'undetermined', canAskAgain: true } as never);
+  });
 
   it('returns null when permission is denied', async () => {
     location.requestForegroundPermissionsAsync.mockResolvedValue({ status: 'denied' } as never);

@@ -7,6 +7,7 @@ import { BiometricService } from '@/infrastructure/platform/biometrics';
 import { HapticsService } from '@/infrastructure/platform/haptics';
 import { ExpoLocationProvider } from '@/infrastructure/platform/location';
 import { NetworkMonitor } from '@/infrastructure/platform/network';
+import { NativePrompts } from '@/infrastructure/platform/native-prompts';
 import { ExpoCryptoPrimitives } from '@/infrastructure/security/crypto-primitives';
 import { ExpoSecureVault } from '@/infrastructure/security/secure-storage';
 
@@ -18,7 +19,8 @@ export const DATABASE_NAME = 'pitlane.db';
 export async function bootstrap(): Promise<AppServices> {
   const native = await openDatabaseAsync(DATABASE_NAME);
   await native.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
-  const location = new ExpoLocationProvider();
+  const nativePrompts = new NativePrompts();
+  const location = new ExpoLocationProvider(4_000, nativePrompts);
   const container = await AppContainer.create({
     db: new ExpoSqliteDatabase(native),
     env,
@@ -32,5 +34,6 @@ export async function bootstrap(): Promise<AppServices> {
     biometrics: new BiometricService(),
     heading: location,
     network: new NetworkMonitor(),
+    nativePrompts,
   };
 }
