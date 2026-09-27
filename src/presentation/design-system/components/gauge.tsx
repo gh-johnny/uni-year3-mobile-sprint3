@@ -32,6 +32,7 @@ export type GaugeProps = PropsWithChildren<{
   /** Fraction (0..1) from where ticks turn red — tachometer "redline". */
   redlineFrom?: number;
   needle?: boolean;
+  inverse?: boolean;
   onSettled?: () => void;
   testID?: string;
 }>;
@@ -41,7 +42,7 @@ export type GaugeProps = PropsWithChildren<{
  * The sweep runs on the UI thread and calls `onSettled` when the needle lands
  * (used to fire the "heartbeat" haptic).
  */
-export function Gauge({ progress, color, size = 200, thickness = 12, redlineFrom, needle, onSettled, children, testID }: GaugeProps) {
+export function Gauge({ progress, color, size = 200, thickness = 12, redlineFrom, needle, inverse = false, onSettled, children, testID }: GaugeProps) {
   const theme = useTheme();
   const clamped = Math.min(1, Math.max(0, progress));
   const center = size / 2;
@@ -58,12 +59,12 @@ export function Gauge({ progress, color, size = 200, thickness = 12, redlineFrom
   const arcProps = useAnimatedProps(() => ({ strokeDashoffset: arcLength * (1 - value.value) }));
   const needleStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${START_ANGLE + 90 + SWEEP * value.value}deg` }] }));
 
-  const ticks = Array.from({ length: 28 }, (_, index) => {
-    const fraction = index / 27;
+  const ticks = Array.from({ length: 10 }, (_, index) => {
+    const fraction = index / 9;
     const angle = START_ANGLE + SWEEP * fraction;
     const major = index % 3 === 0;
     const outer = polar(center, center, radius - thickness / 2 - 6, angle);
-    const inner = polar(center, center, radius - thickness / 2 - (major ? 16 : 11), angle);
+    const inner = polar(center, center, radius - thickness / 2 - (major ? 12 : 9), angle);
     const red = redlineFrom !== undefined && fraction >= redlineFrom;
     return { key: index, outer, inner, major, red };
   });
@@ -71,7 +72,7 @@ export function Gauge({ progress, color, size = 200, thickness = 12, redlineFrom
   return (
     <View testID={testID} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }} style={{ width: size, height: size }}>
       <Svg width={size} height={size}>
-        <Path d={arcPath(center, center, radius, START_ANGLE, START_ANGLE + SWEEP)} stroke={theme.colors.surfaceMuted} strokeWidth={thickness} strokeLinecap="round" fill="none" />
+        <Path d={arcPath(center, center, radius, START_ANGLE, START_ANGLE + SWEEP)} stroke={inverse ? theme.colors.onBrand : theme.colors.surfaceMuted} strokeOpacity={inverse ? 0.15 : 1} strokeWidth={thickness} strokeLinecap="round" fill="none" />
         <AnimatedPath
           d={arcPath(center, center, radius, START_ANGLE, START_ANGLE + SWEEP)}
           stroke={color}
@@ -88,7 +89,8 @@ export function Gauge({ progress, color, size = 200, thickness = 12, redlineFrom
             y1={tick.inner.y}
             x2={tick.outer.x}
             y2={tick.outer.y}
-            stroke={tick.red ? theme.colors.danger : theme.colors.borderStrong}
+            stroke={tick.red ? theme.colors.danger : inverse ? theme.colors.onBrand : theme.colors.borderStrong}
+            strokeOpacity={inverse ? 0.45 : 1}
             strokeWidth={tick.major ? 2 : 1}
             strokeLinecap="round"
           />

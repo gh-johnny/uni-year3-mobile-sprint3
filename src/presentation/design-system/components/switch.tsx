@@ -47,7 +47,7 @@ export function Switch({ value, onValueChange, label, disabled, testID }: Switch
               width: KNOB,
               height: KNOB,
               borderRadius: KNOB / 2,
-              backgroundColor: '#FFFFFF',
+              backgroundColor: value ? colors.onPrimary : colors.surface,
               shadowColor: '#000',
               shadowOpacity: 0.2,
               shadowRadius: 3,

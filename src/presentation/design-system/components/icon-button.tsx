@@ -39,7 +39,8 @@ export function IconButton({ icon, label, onPress, variant = 'surface', size = 4
         {
           width: size,
           height: size,
-          borderRadius: size / 2,
+          borderRadius: 4,
+          borderTopRightRadius: size * 0.4,
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: palette.background,

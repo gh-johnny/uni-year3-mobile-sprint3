@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { RoleKey } from '@/domain/auth/role';
 
-import { Avatar, Button, FormTextField, Icon, IconName, PitStripe, PressableScale, Text, useTheme, Wordmark } from '../../design-system';
+import { Avatar, Button, Circuit, CornerCut, FormTextField, Icon, IconName, PressableScale, Text, useTheme, Wordmark } from '../../design-system';
 import { useFeedback } from '../../hooks/use-feedback';
 import { useI18n } from '../../hooks/use-i18n';
 import { useServices } from '../../providers/services';
@@ -30,8 +30,9 @@ function PersonaCard({ role, icon, title, hint, selected, onPress }: { role: Rol
         flex: 1,
         gap: 10,
         padding: 14,
-        borderRadius: theme.radius.lg,
-        borderWidth: 1.5,
+        borderRadius: theme.radius.sm,
+        borderTopRightRadius: 24,
+        borderWidth: 1,
         borderColor: selected ? colors.primary : colors.border,
         backgroundColor: selected ? colors.primarySoft : colors.surface,
       }}
@@ -117,7 +118,7 @@ function SignInForm() {
 
   return (
     <View style={{ gap: 18 }}>
-      <Text variant="overline" color="textMuted">
+      <Text variant="callout" color="textMuted">
         {t('auth.persona')}
       </Text>
       <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -129,7 +130,7 @@ function SignInForm() {
       <Button label={t('auth.signIn')} size="lg" trailingIcon="arrowUpRight" haptic="commit" loading={formState.isSubmitting} onPress={submit} fullWidth testID="sign-in" />
       <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="info" size={14} color={useTheme().colors.textMuted} />
-        <Text variant="caption" color="textMuted">
+        <Text variant="caption" color="textMuted" style={{ flexShrink: 1 }}>
           {t('auth.demoHint', { password: DEMO_PASSWORD })}
         </Text>
       </View>
@@ -147,18 +148,21 @@ export function SignInScreen() {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: theme.colors.brand }}>
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" bounces={false}>
-        <View style={{ paddingTop: insets.top + 28, paddingHorizontal: 24, paddingBottom: 36, gap: 20 }}>
+        <View style={{ paddingTop: insets.top + 20, paddingHorizontal: 24, paddingBottom: 24, gap: 20, overflow: 'hidden' }}>
           <Animated.View entering={FadeInDown.duration(500)}>
-            <Wordmark size={34} inverse />
+            <Wordmark size={24} inverse />
           </Animated.View>
-          <Animated.View entering={FadeInDown.delay(120).duration(500)} style={{ gap: 10 }}>
-            <Text variant="overline" style={{ color: theme.colors.onBrand, opacity: 0.7 }}>
+          <Animated.View entering={FadeInDown.delay(120).duration(500)} style={{ gap: 12 }}>
+            <Text variant="overline" style={{ color: theme.colors.onBrand, opacity: 0.65 }}>
               {t('auth.eyebrow')}
             </Text>
-            <Text variant="display" style={{ color: theme.colors.onBrand, fontSize: 44, lineHeight: 46 }}>
-              {t('auth.headline')}
-            </Text>
-            <Text variant="body" style={{ color: theme.colors.onBrand, opacity: 0.72 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text variant="hero" style={{ color: theme.colors.signal, fontSize: 36, lineHeight: 39, letterSpacing: -1.6, flex: 1 }}>
+                {t('auth.headline')}
+              </Text>
+              <Circuit size={156} style={{ marginRight: -30 }} />
+            </View>
+            <Text variant="caption" style={{ color: theme.colors.onBrand, opacity: 0.75 }}>
               {t('common.tagline')}
             </Text>
           </Animated.View>
@@ -167,16 +171,13 @@ export function SignInScreen() {
           entering={FadeInUp.delay(200).springify().damping(20)}
           style={{
             flex: 1,
-            gap: 18,
             paddingHorizontal: 24,
-            paddingTop: 26,
+            paddingTop: 24,
             paddingBottom: insets.bottom + 28,
-            borderTopLeftRadius: theme.radius.xl,
-            borderTopRightRadius: theme.radius.xl,
             backgroundColor: theme.colors.background,
           }}
         >
-          <PitStripe height={6} width={56} />
+          <CornerCut color={theme.colors.brand} size={30} />
           {locked ? <UnlockPanel /> : <SignInForm />}
         </Animated.View>
       </ScrollView>

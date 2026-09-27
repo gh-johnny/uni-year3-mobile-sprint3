@@ -1,7 +1,7 @@
 import { TabList, TabSlot, Tabs, TabTrigger, TabTriggerSlotProps } from 'expo-router/ui';
-import { forwardRef } from 'react';
+import { forwardRef, useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
+import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon, IconName, PressableScale, Text, useTheme } from '../design-system';
@@ -13,6 +13,14 @@ type TabButtonProps = TabTriggerSlotProps & { icon: IconName; label: string };
 const TabButton = forwardRef<View, TabButtonProps>(function TabButton({ icon, label, isFocused, onPress, onLongPress, testID }, ref) {
   const theme = useTheme();
   const { colors } = theme;
+  const focus = useSharedValue(isFocused ? 1 : 0);
+  useEffect(() => {
+    focus.value = withSpring(isFocused ? 1 : 0, theme.motion.springSnappy);
+  }, [isFocused, focus, theme]);
+  const marker = useAnimatedStyle(() => ({
+    transform: [{ translateY: -2 * focus.value }, { scale: 0.9 + 0.1 * focus.value }],
+    backgroundColor: interpolateColor(focus.value, [0, 1], [colors.brand, colors.signal]),
+  }));
   return (
     <PressableScale
       ref={ref}
@@ -24,35 +32,31 @@ const TabButton = forwardRef<View, TabButtonProps>(function TabButton({ icon, la
       onPress={onPress}
       onLongPress={onLongPress}
       scaleTo={0.92}
+      style={{ flex: 1, minWidth: 0 }}
     >
-      <Animated.View
-        layout={LinearTransition.springify().damping(18).stiffness(220)}
+      <View
         style={{
-          flexDirection: 'row',
           alignItems: 'center',
-          gap: 8,
-          height: 46,
-          paddingHorizontal: isFocused ? 16 : 13,
-          borderRadius: theme.radius.pill,
-          backgroundColor: isFocused ? colors.primary : 'transparent',
+          justifyContent: 'center',
+          gap: 4,
+          height: theme.layout.tabBarHeight,
+          paddingHorizontal: 4,
         }}
       >
-        <Icon name={icon} size={21} color={isFocused ? colors.onPrimary : colors.textMuted} strokeWidth={isFocused ? 2 : 1.75} />
-        {isFocused ? (
-          <Animated.View entering={FadeIn.duration(180)}>
-            <Text variant="callout" style={{ color: colors.onPrimary }} numberOfLines={1}>
-              {label}
-            </Text>
-          </Animated.View>
-        ) : null}
-      </Animated.View>
+        <Animated.View style={[{ width: 44, height: 32, borderRadius: 3, borderTopRightRadius: 16, borderBottomLeftRadius: 16, alignItems: 'center', justifyContent: 'center' }, marker]}>
+          <Icon name={icon} size={21} color={isFocused ? colors.onSignal : colors.onBrand} strokeWidth={isFocused ? 2 : 1.5} />
+        </Animated.View>
+        <Text variant="callout" style={{ color: isFocused ? colors.signal : colors.onBrand, opacity: isFocused ? 1 : 0.65, fontSize: 10, lineHeight: 14 }} numberOfLines={1}>
+          {label}
+        </Text>
+      </View>
     </PressableScale>
   );
 });
 
 /**
- * Headless expo-router tabs with a custom floating, morphing pill bar. The hidden
- * `TabList` declares routes; the visible bar uses `TabTrigger asChild`.
+ * A cut-shaped dock with a spring-driven marker and always-visible labels.
+ * The hidden `TabList` declares routes; the visible bar uses `TabTrigger asChild`.
  */
 export function FloatingTabs({ tabs }: { tabs: readonly TabDefinition[] }) {
   const theme = useTheme();
@@ -62,24 +66,20 @@ export function FloatingTabs({ tabs }: { tabs: readonly TabDefinition[] }) {
       <TabSlot />
       <View
         pointerEvents="box-none"
-        style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + theme.layout.tabBarBottomGap, alignItems: 'center' }}
+        style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + theme.layout.tabBarBottomGap }}
       >
         <View
           accessibilityRole="tablist"
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 4,
-            padding: 8,
-            borderRadius: theme.radius.pill,
-            backgroundColor: theme.colors.surfaceRaised,
+            paddingHorizontal: 8,
+            backgroundColor: theme.colors.brand,
+            borderRadius: 4,
+            borderTopRightRadius: 28,
+            borderBottomLeftRadius: 28,
             borderWidth: 1,
             borderColor: theme.colors.border,
-            shadowColor: theme.colors.shadow,
-            shadowOpacity: 1,
-            shadowRadius: 24,
-            shadowOffset: { width: 0, height: 10 },
-            elevation: 10,
           }}
         >
           {tabs.map((tab) => (

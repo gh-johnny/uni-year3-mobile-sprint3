@@ -70,7 +70,7 @@ export function TrendChart({ series, labels = [], height = 170, formatValue, tes
             <Defs>
               {series.map((entry) => (
                 <LinearGradient key={entry.key} id={`area-${entry.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0" stopColor={entry.color} stopOpacity={0.28} />
+                  <Stop offset="0" stopColor={entry.color} stopOpacity={0.12} />
                   <Stop offset="1" stopColor={entry.color} stopOpacity={0} />
                 </LinearGradient>
               ))}
@@ -123,7 +123,7 @@ function Bar({ datum, index, benchmark }: { datum: BarDatum; index: number; benc
     progress.value = withDelay(index * 45, withTiming(datum.ratio, { duration: motion.duration.slow, easing: Easing.out(Easing.cubic) }));
   }, [datum.ratio, index, progress]);
   const fill = useAnimatedStyle(() => ({ width: `${Math.max(0.02, progress.value) * 100}%` }));
-  const color = datum.tone === 'danger' ? theme.colors.danger : datum.highlight ? theme.colors.accent : theme.colors.primary;
+  const color = datum.tone === 'danger' ? theme.colors.danger : datum.tone === 'success' ? theme.colors.success : datum.highlight ? theme.colors.primary : theme.colors.textMuted;
 
   return (
     <View style={{ gap: 6 }} accessibilityLabel={`${datum.label} ${datum.valueLabel}`}>

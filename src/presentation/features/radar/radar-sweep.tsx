@@ -5,7 +5,7 @@ import Svg, { Circle, Line, Path } from 'react-native-svg';
 
 import type { RiskTier } from '@/domain/retention/risk-score';
 
-import { Text, useTheme } from '../../design-system';
+import { CornerCut, Text, Theme, useTheme } from '../../design-system';
 import type { RadarBlip } from '../../presenters/lead-presenter';
 
 const SWEEP_MS = 4200;
@@ -44,6 +44,7 @@ const wedge = (radius: number, fromDeg: number, toDeg: number): string => {
 /** Retention radar: a rotating sweep over concentric rings; every open lead is a blip coloured by risk tier. */
 export function RadarSweep({ blips, size, centerLabel, centerCaption }: { blips: readonly RadarBlip[]; size: number; centerLabel: string; centerCaption: string }) {
   const theme = useTheme();
+  const instrument = Theme.for('dark').colors;
   const radius = size / 2;
   const rotation = useSharedValue(0);
   const pulse = useSharedValue(0);
@@ -57,15 +58,15 @@ export function RadarSweep({ blips, size, centerLabel, centerCaption }: { blips:
   const ringStyle = useAnimatedStyle(() => ({ opacity: 0.7 * (1 - pulse.value), transform: [{ scale: 1 + pulse.value * 1.6 }] }));
 
   const tierColor: Record<RiskTier, string> = {
-    low: theme.colors.success,
-    medium: theme.colors.warning,
-    high: theme.colors.accent,
-    critical: theme.colors.danger,
+    low: instrument.success,
+    medium: instrument.warning,
+    high: instrument.accent,
+    critical: instrument.danger,
   };
   const line = theme.colors.onBrand;
 
   return (
-    <View testID="radar-sweep" style={{ width: size, height: size, alignSelf: 'center', borderRadius: radius, backgroundColor: theme.colors.brand, overflow: 'hidden' }}>
+    <View testID="radar-sweep" style={{ width: size, height: size, alignSelf: 'center', borderRadius: 4, borderBottomLeftRadius: 60, backgroundColor: theme.isDark ? theme.colors.surface : theme.colors.brand, overflow: 'hidden' }}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
         {[0.25, 0.5, 0.75, 1].map((ratio) => (
           <Circle key={ratio} cx={radius} cy={radius} r={radius * ratio - 1} stroke={line} strokeOpacity={0.14} strokeWidth={1} fill="none" />
@@ -80,11 +81,11 @@ export function RadarSweep({ blips, size, centerLabel, centerCaption }: { blips:
             <Path
               key={step}
               d={wedge(radius, -90 - (step + 1) * TRAIL_STEP_DEG, -90 - step * TRAIL_STEP_DEG)}
-              fill={theme.colors.accent}
-              fillOpacity={0.34 * (1 - step / TRAIL_STEPS)}
+              fill={theme.colors.signal}
+              fillOpacity={0.22 * (1 - step / TRAIL_STEPS)}
             />
           ))}
-          <Line x1={radius} y1={radius} x2={radius} y2={0} stroke={theme.colors.accent} strokeWidth={2} strokeOpacity={0.9} />
+          <Line x1={radius} y1={radius} x2={radius} y2={0} stroke={theme.colors.signal} strokeWidth={1.5} strokeOpacity={0.8} />
         </Svg>
       </Animated.View>
 
@@ -104,19 +105,20 @@ export function RadarSweep({ blips, size, centerLabel, centerCaption }: { blips:
             <Animated.View
               key={blip.id}
               pointerEvents="none"
-              style={[{ position: 'absolute', left: x - 9, top: y - 9, width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: theme.colors.danger }, ringStyle]}
+              style={[{ position: 'absolute', left: x - 9, top: y - 9, width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: instrument.danger }, ringStyle]}
             />
           );
         })}
 
       <View pointerEvents="none" style={{ position: 'absolute', left: radius - 44, top: radius - 26, width: 88, alignItems: 'center' }}>
-        <Text variant="title2" style={{ color: theme.colors.onBrand }} testID="radar-center">
+        <Text variant="metric" style={{ color: theme.colors.signal }} testID="radar-center">
           {centerLabel}
         </Text>
-        <Text variant="overline" style={{ color: theme.colors.onBrand, opacity: 0.6, fontSize: 10 }} numberOfLines={1}>
+        <Text variant="overline" style={{ color: theme.colors.onBrand, opacity: 0.65, fontSize: 10 }} numberOfLines={1}>
           {centerCaption}
         </Text>
       </View>
+      <CornerCut color={theme.colors.background} size={30} />
     </View>
   );
 }

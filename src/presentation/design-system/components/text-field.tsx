@@ -26,7 +26,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 
   return (
     <View style={{ gap: 6 }}>
-      <Text variant="overline" color="textMuted">
+      <Text variant="callout" color="textMuted">
         {label}
       </Text>
       <View
@@ -37,7 +37,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
           minHeight: 52,
           paddingHorizontal: 14,
           borderRadius: theme.radius.md,
-          borderWidth: 1.5,
+          borderWidth: 1,
           borderColor,
           backgroundColor: colors.surface,
         }}

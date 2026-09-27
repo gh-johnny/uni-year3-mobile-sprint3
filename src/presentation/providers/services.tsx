@@ -5,6 +5,7 @@ import type { BiometricService } from '@/infrastructure/platform/biometrics';
 import type { HapticsService } from '@/infrastructure/platform/haptics';
 import type { HeadingSource } from '@/infrastructure/platform/location';
 import type { NetworkMonitor } from '@/infrastructure/platform/network';
+import type { NativePrompts } from '@/infrastructure/platform/native-prompts';
 
 export type AppServices = {
   container: AppContainer;
@@ -12,6 +13,7 @@ export type AppServices = {
   biometrics: BiometricService;
   heading: HeadingSource;
   network: NetworkMonitor;
+  nativePrompts: NativePrompts;
 };
 
 const ServicesContext = createContext<AppServices | null>(null);

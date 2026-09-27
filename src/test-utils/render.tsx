@@ -9,6 +9,7 @@ import { BiometricAvailability, BiometricService } from '@/infrastructure/platfo
 import { HapticsService } from '@/infrastructure/platform/haptics';
 import type { HeadingSource } from '@/infrastructure/platform/location';
 import { NetworkMonitor } from '@/infrastructure/platform/network';
+import { NativePrompts } from '@/infrastructure/platform/native-prompts';
 import type { I18n } from '@/presentation/hooks/use-i18n';
 import { Formatters, Locale, Translator } from '@/presentation/i18n';
 import { AppServices, ServicesProvider } from '@/presentation/providers/services';
@@ -84,6 +85,7 @@ export async function createTestServices(options: Parameters<typeof createTestCo
     biometrics: new FakeBiometrics(),
     heading: new FakeHeading(),
     network: new FakeNetwork(),
+    nativePrompts: new NativePrompts(),
   };
 }
 
