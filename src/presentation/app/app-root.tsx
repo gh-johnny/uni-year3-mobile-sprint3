@@ -40,12 +40,30 @@ function Runtime({ services }: { services: AppServices }) {
   }, [services]);
 
   useEffect(() => {
-    const subscription = AppState.addEventListener('change', (state) => {
+    let resumeCheck: ReturnType<typeof setTimeout> | undefined;
+    const lockIfBackground = () => {
       const session = useSession.getState();
-      if (state === 'background' && biometricLock && session.user) session.signedIn(session.user, { locked: true });
+      if (AppState.currentState === 'background' && !services.nativePrompts.active && biometricLock && session.user) {
+        session.signedIn(session.user, { locked: true });
+      }
+    };
+    const subscription = AppState.addEventListener('change', () => {
+      clearTimeout(resumeCheck);
+      lockIfBackground();
     });
-    return () => subscription.remove();
-  }, [biometricLock]);
+    // A permission dialog is part of the current flow. If the user actually
+    // leaves the app during it, lock once the dialog finishes in the background.
+    const unsubscribe = services.nativePrompts.onIdle(() => {
+      // Android may deliver the permission result just before onResume.
+      clearTimeout(resumeCheck);
+      resumeCheck = setTimeout(lockIfBackground, 300);
+    });
+    return () => {
+      clearTimeout(resumeCheck);
+      subscription.remove();
+      unsubscribe();
+    };
+  }, [biometricLock, services]);
 
   return null;
 }

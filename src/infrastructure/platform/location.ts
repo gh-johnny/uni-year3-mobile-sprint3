@@ -3,6 +3,8 @@ import * as Location from 'expo-location';
 import { LocationProvider } from '@/application/ports/services';
 import { GeoPoint } from '@/domain/geo/geo-point';
 
+import { NativePrompts } from './native-prompts';
+
 export interface HeadingSource {
   /** Emits the device heading (degrees from true north). Returns an unsubscribe function. */
   watch(listener: (degrees: number) => void): Promise<() => void>;
@@ -10,17 +12,20 @@ export interface HeadingSource {
 
 /** GPS fix with graceful degradation: permission denied or timeout → `null`. */
 export class ExpoLocationProvider implements LocationProvider, HeadingSource {
-  constructor(private readonly timeoutMs = 4_000) {}
+  constructor(private readonly timeoutMs = 4_000, private readonly prompts = new NativePrompts()) {}
 
   async current(): Promise<GeoPoint | null> {
     try {
-      const permission = await Location.requestForegroundPermissionsAsync();
+      let permission = await Location.getForegroundPermissionsAsync();
+      if (permission.status !== 'granted' && permission.canAskAgain) {
+        permission = await this.prompts.run(() => Location.requestForegroundPermissionsAsync());
+      }
       if (permission.status !== 'granted') return null;
       const lastKnown = await Location.getLastKnownPositionAsync({ maxAge: 5 * 60_000 });
       const fix =
         lastKnown ??
         (await Promise.race([
-          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+          Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced, mayShowUserSettingsDialog: false }),
           new Promise<null>((resolve) => setTimeout(() => resolve(null), this.timeoutMs)),
         ]));
       return fix ? GeoPoint.restore(fix.coords.latitude, fix.coords.longitude) : null;

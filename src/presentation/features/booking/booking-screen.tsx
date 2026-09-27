@@ -22,8 +22,8 @@ function Success({ appointment, model, dealer }: { appointment: Appointment; mod
   const { t, f } = useI18n();
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 18, padding: 28 }} testID="booking-success">
-      <Animated.View entering={ZoomIn.springify().damping(12)} style={{ width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.success }}>
-        <Icon name="check" size={48} color="#FFFFFF" strokeWidth={2.6} />
+      <Animated.View entering={ZoomIn.springify().damping(12)} style={{ width: 112, height: 112, borderRadius: 4, borderTopRightRadius: 44, borderBottomLeftRadius: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.signal }}>
+        <Icon name="check" size={52} color={theme.colors.onSignal} strokeWidth={2.6} />
       </Animated.View>
       <PitStripe height={6} width={64} />
       <Text variant="display" align="center">

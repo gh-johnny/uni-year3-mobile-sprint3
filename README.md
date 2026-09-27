@@ -1,3 +1,11 @@
+---
+title: Pitlane — Challenge Ford Sprint 3
+status: experimental
+created: 2026-09-25
+last-updated: 2026-09-27
+last-reviewed: 2026-09-27
+---
+
 # Pitlane — _Every Ford comes back home._
 
 App mobile (Expo / React Native) para o **Desafio 02 da Ford — VIN Share / Service Share (retenção no pós-venda)**.
@@ -46,8 +54,8 @@ Os campos já vêm preenchidos na tela de login ao escolher a persona.
 
 | Requisito (slide "Sprint 3 — Mobile Development and IoT") | Atendimento |
 |---|---|
-| **APK final**, com todos os fluxos do desafio funcionando sem erros | APK release gerado (ver [§5](#5-como-rodar-testar-e-gerar-o-apk)) e **percorrido no emulador Android 15**: agendamento completo, passe QR, cadastro por VIN, histórico, concessionárias, Pulse, Radar, Lead sheet, sync, tema/idioma. Os defeitos que só apareceram no dispositivo foram corrigidos ([§9](#9-qualidade-e-verificação)) |
-| **Identidade visual consolidada** (componentes, cores, tipografia, UX) | Design system próprio (`src/presentation/design-system`): tokens, ~30 componentes, 45 ícones SVG, tema claro/escuro, tipografia Barlow / Barlow Condensed / JetBrains Mono, tela-vitrine **Profile → Design system** ([§4](#4-telas)) |
+| **APK final**, com todos os fluxos do desafio funcionando sem erros | APK release validado na revisão anterior (ver [§5](#5-como-rodar-testar-e-gerar-o-apk)); a revisão visual atual foi compilada em debug e foi percorrida no emulador Android 15. Fluxos: agendamento completo, passe QR, cadastro por VIN, histórico, concessionárias, Pulse, Radar, Lead sheet, sync, tema/idioma. Os defeitos que só apareceram no dispositivo foram corrigidos ([§9](#9-qualidade-e-verificação)) |
+| **Identidade visual consolidada** (componentes, cores, tipografia, UX) | Design system próprio (`src/presentation/design-system`): tokens, ~30 componentes, 45 ícones SVG, tema claro/escuro, tipografia Archivo Black / IBM Plex Sans / JetBrains Mono, tela-vitrine **Profile → Design system** ([§4](#4-telas)) |
 | **Produto finalizado**: código organizado, README completo e demonstração visual de todas as telas | Arquitetura em 4 camadas ([§6](#6-arquitetura)), este README e a galeria de telas ([§4](#4-telas)) |
 | **Build APK via EAS Build (ou equivalente)** | `eas.json` com perfil `preview` (→ APK) e `npm run build:apk`. O APK entregue foi compilado **localmente com Gradle** (equivalente), instalado e executado no emulador |
 
@@ -79,34 +87,34 @@ Recursos nativos/IoT usados de verdade: **câmera** (leitura do código de barra
 
 ## 4. Telas
 
-Capturas do APK release rodando no emulador (Pixel 7, Android 15).
+Capturas de 27/09/2026 do build de desenvolvimento no emulador Android 15 (720 × 1600), com a identidade azul Ford e dados de demonstração. Incluem os temas claro/escuro e os idiomas EN/PT-BR; câmera e localização usam os recursos simulados do emulador.
 
 ### Owner
 
 <table>
 <tr>
-<td align="center"><img src="docs/screenshots/owner-01-sign-in.png" width="190"><br><sub>Login (persona)</sub></td>
-<td align="center"><img src="docs/screenshots/owner-02-garage.png" width="190"><br><sub>Garage</sub></td>
-<td align="center"><img src="docs/screenshots/owner-09-garage-next-visit.png" width="190"><br><sub>Garage · próximo agendamento</sub></td>
-<td align="center"><img src="docs/screenshots/owner-16-garage-dark-ptbr.png" width="190"><br><sub>Garage · escuro · pt-BR</sub></td>
+<td align="center"><img src="docs/screenshots/owner-01-sign-in.png" alt="Login (persona)" width="190"><br><sub>Login (persona)</sub></td>
+<td align="center"><img src="docs/screenshots/owner-02-garage.png" alt="Garage" width="190"><br><sub>Garage</sub></td>
+<td align="center"><img src="docs/screenshots/owner-09-garage-next-visit.png" alt="Garage · próximo agendamento" width="190"><br><sub>Garage · próximo agendamento</sub></td>
+<td align="center"><img src="docs/screenshots/owner-16-garage-dark-ptbr.png" alt="Garage · escuro · pt-BR" width="190"><br><sub>Garage · escuro · pt-BR</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/owner-03-booking-service.png" width="190"><br><sub>Booking 1/4 · serviço</sub></td>
-<td align="center"><img src="docs/screenshots/owner-04-booking-dealer.png" width="190"><br><sub>Booking 2/4 · concessionária</sub></td>
-<td align="center"><img src="docs/screenshots/owner-05-booking-slot.png" width="190"><br><sub>Booking 3/4 · horário</sub></td>
-<td align="center"><img src="docs/screenshots/owner-06-booking-review.png" width="190"><br><sub>Booking 4/4 · revisão</sub></td>
+<td align="center"><img src="docs/screenshots/owner-03-booking-service.png" alt="Booking 1/4 · serviço" width="190"><br><sub>Booking 1/4 · serviço</sub></td>
+<td align="center"><img src="docs/screenshots/owner-04-booking-dealer.png" alt="Booking 2/4 · concessionária" width="190"><br><sub>Booking 2/4 · concessionária</sub></td>
+<td align="center"><img src="docs/screenshots/owner-05-booking-slot.png" alt="Booking 3/4 · horário" width="190"><br><sub>Booking 3/4 · horário</sub></td>
+<td align="center"><img src="docs/screenshots/owner-06-booking-review.png" alt="Booking 4/4 · revisão" width="190"><br><sub>Booking 4/4 · revisão</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/owner-07-booking-success.png" width="190"><br><sub>Confirmação</sub></td>
-<td align="center"><img src="docs/screenshots/owner-08-service-pass.png" width="190"><br><sub>Service pass (QR)</sub></td>
-<td align="center"><img src="docs/screenshots/owner-10-history.png" width="190"><br><sub>History</sub></td>
-<td align="center"><img src="docs/screenshots/owner-11-dealers-compass.png" width="190"><br><sub>Dealers · bússola</sub></td>
+<td align="center"><img src="docs/screenshots/owner-07-booking-success.png" alt="Confirmação" width="190"><br><sub>Confirmação</sub></td>
+<td align="center"><img src="docs/screenshots/owner-08-service-pass.png" alt="Service pass (QR)" width="190"><br><sub>Service pass (QR)</sub></td>
+<td align="center"><img src="docs/screenshots/owner-10-history.png" alt="History" width="190"><br><sub>History</sub></td>
+<td align="center"><img src="docs/screenshots/owner-11-dealers-compass.png" alt="Dealers · bússola" width="190"><br><sub>Dealers · bússola</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/owner-12-vehicle.png" width="190"><br><sub>Vehicle</sub></td>
-<td align="center"><img src="docs/screenshots/owner-13-vehicle-specs.png" width="190"><br><sub>Ficha técnica</sub></td>
-<td align="center"><img src="docs/screenshots/owner-14-scan-camera.png" width="190"><br><sub>Scan · câmera</sub></td>
-<td align="center"><img src="docs/screenshots/owner-15-scan-manual.png" width="190"><br><sub>Scan · VIN manual</sub></td>
+<td align="center"><img src="docs/screenshots/owner-12-vehicle.png" alt="Vehicle" width="190"><br><sub>Vehicle</sub></td>
+<td align="center"><img src="docs/screenshots/owner-13-vehicle-specs.png" alt="Ficha técnica" width="190"><br><sub>Ficha técnica</sub></td>
+<td align="center"><img src="docs/screenshots/owner-14-scan-camera.png" alt="Scan · câmera" width="190"><br><sub>Scan · câmera</sub></td>
+<td align="center"><img src="docs/screenshots/owner-15-scan-manual.png" alt="Scan · VIN manual" width="190"><br><sub>Scan · VIN manual</sub></td>
 </tr>
 </table>
 
@@ -114,22 +122,22 @@ Capturas do APK release rodando no emulador (Pixel 7, Android 15).
 
 <table>
 <tr>
-<td align="center"><img src="docs/screenshots/advisor-02-pulse.png" width="190"><br><sub>Pulse</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-03-pulse-trend.png" width="190"><br><sub>Pulse · tendência</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-04-pulse-breakdown.png" width="190"><br><sub>Pulse · cortes</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-09-pulse-dark.png" width="190"><br><sub>Pulse · escuro</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-02-pulse.png" alt="Pulse" width="190"><br><sub>Pulse</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-03-pulse-trend.png" alt="Pulse · tendência" width="190"><br><sub>Pulse · tendência</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-04-pulse-breakdown.png" alt="Pulse · cortes" width="190"><br><sub>Pulse · cortes</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-09-pulse-dark.png" alt="Pulse · escuro" width="190"><br><sub>Pulse · escuro</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/advisor-05-radar.png" width="190"><br><sub>Radar</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-06-radar-leads.png" width="190"><br><sub>Radar · leads</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-07-lead-sheet.png" width="190"><br><sub>Lead sheet</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-08-lead-contacted.png" width="190"><br><sub>Contato → outbox</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-05-radar.png" alt="Radar" width="190"><br><sub>Radar</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-06-radar-leads.png" alt="Radar · leads" width="190"><br><sub>Radar · leads</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-07-lead-sheet.png" alt="Lead sheet" width="190"><br><sub>Lead sheet</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-08-lead-contacted.png" alt="Contato → outbox" width="190"><br><sub>Contato → outbox</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/screenshots/advisor-10-radar-dark.png" width="190"><br><sub>Radar · escuro</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-11-pulse-ptbr.png" width="190"><br><sub>Pulse · pt-BR</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-12-radar-ptbr.png" width="190"><br><sub>Radar · pt-BR</sub></td>
-<td align="center"><img src="docs/screenshots/advisor-01-sign-in.png" width="190"><br><sub>Login (advisor)</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-10-radar-dark.png" alt="Radar · escuro" width="190"><br><sub>Radar · escuro</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-11-pulse-ptbr.png" alt="Pulse · pt-BR" width="190"><br><sub>Pulse · pt-BR</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-12-radar-ptbr.png" alt="Radar · pt-BR" width="190"><br><sub>Radar · pt-BR</sub></td>
+<td align="center"><img src="docs/screenshots/advisor-01-sign-in.png" alt="Login (advisor)" width="190"><br><sub>Login (advisor)</sub></td>
 </tr>
 </table>
 
@@ -137,10 +145,10 @@ Capturas do APK release rodando no emulador (Pixel 7, Android 15).
 
 <table>
 <tr>
-<td align="center"><img src="docs/screenshots/shared-01-profile.png" width="190"><br><sub>Profile</sub></td>
-<td align="center"><img src="docs/screenshots/shared-05-profile-ptbr.png" width="190"><br><sub>Profile · pt-BR</sub></td>
-<td align="center"><img src="docs/screenshots/shared-02-sync-center.png" width="190"><br><sub>Sync center</sub></td>
-<td align="center"><img src="docs/screenshots/shared-03-design-system.png" width="190"><br><sub>Design system</sub></td>
+<td align="center"><img src="docs/screenshots/shared-01-profile.png" alt="Profile" width="190"><br><sub>Profile</sub></td>
+<td align="center"><img src="docs/screenshots/shared-05-profile-ptbr.png" alt="Profile · pt-BR" width="190"><br><sub>Profile · pt-BR</sub></td>
+<td align="center"><img src="docs/screenshots/shared-02-sync-center.png" alt="Sync center" width="190"><br><sub>Sync center</sub></td>
+<td align="center"><img src="docs/screenshots/shared-03-design-system.png" alt="Design system" width="190"><br><sub>Design system</sub></td>
 </tr>
 </table>
 
@@ -304,10 +312,11 @@ Faixas de risco: `critical ≥ 75%`, `high ≥ 55%`, `medium ≥ 30%`, `low` aba
 | `tsc --noEmit` (strict) | limpo |
 | `expo lint` | 0 mensagens |
 | Jest | **348 testes** em 25 suítes, todos verdes |
-| Cobertura (threshold global 95 %) | **99,3 %** statements · **95,9 %** branches · **99,4 %** functions · **99,5 %** linhas |
+| Cobertura (threshold global 95 %) | **99,09 %** statements · **95,42 %** branches · **99,15 %** functions · **99,31 %** linhas |
 | `expo-doctor` | 21/21 checks |
-| APK release no emulador (Android 15) | todos os fluxos das duas personas percorridos, sem crash no _logcat_ |
-| Container Node 22 (`docker build --target check`) | `npm ci` estrito + typecheck + lint + 348 testes + gate de cobertura — verde (mesmos números do host) |
+| Android 15 no emulador | APK release da revisão anterior percorrido; revisão visual atual compilada em debug com Gradle |
+| GitHub Actions (Node 22) | instalação estrita, typecheck, lint, cobertura, Expo Doctor e export Android/Hermes aprovados |
+| Container Node 22 (`docker build --target check`) | `npm ci` estrito + typecheck + lint + 348 testes + gate de cobertura — verde na validação anterior à revisão visual |
 | `expo-doctor` e `expo export` no container | 21/21 · bundle Hermes de 5,4 MB |
 | Infra estática | `actionlint` (workflows), `hadolint` (Dockerfiles) e `docker compose config`: 0 problemas |
 
@@ -317,6 +326,7 @@ Como os testes rodam: domínio e casos de uso sobre **SQL real** (`sql.js`); tel
 - **Crash ao abrir _Dealers_**: uma função JS comum era chamada dentro de um _worklet_ do Reanimated (o UI runtime não executa "remote functions"). Agora é um worklet.
 - **Gráfico de tendência vazio no Pulse**: o _reveal_ com `ClipPath` animado não é reinvalidado no Android; trocado por _fade_ via `useAnimatedStyle`.
 - **"R$17,403.6" em vez de "R$17,4 mil"**: o Hermes/Android ignora `notation: 'compact'` do `Intl`; o formato compacto agora é montado à mão.
+- **Retorno ao login em Dealers/Booking**: a janela de permissão de localização era interpretada como saída do app e acionava o bloqueio biométrico. O pedido agora é acompanhado até o retorno da atividade, preservando a sessão durante a permissão.
 - Relógio da status bar ilegível sobre o cabeçalho azul do login; "Last sync" incoerente com a outbox após reiniciar o app.
 
 ### Limitações conhecidas (transparência)
@@ -329,7 +339,7 @@ Como os testes rodam: domínio e casos de uso sobre **SQL real** (`sql.js`); tel
 
 ## 10. Identidade visual
 
-Azul Ford (`#00095B`) como âncora, um único acento quente — o laranja "Code Orange" da Raptor (`#FF5F1F`) — e uma rampa de neutros azulados. Motivo recorrente: a **hachura de pit-lane** (`PitStripe`), usada em cartões-herói, separadores, no ícone do app e na splash. Tipografia: **Barlow Condensed** para títulos/números (aspecto de painel de instrumentos), **Barlow** para texto e **JetBrains Mono** para VIN e códigos. Movimento: molas curtas e amortecidas — "pit stop, não pula-pula". Tudo isso está navegável na tela **Profile → Design system**.
+Direção **telemetria de pista**: azul-marinho Ford (`#00095B`), azul luminoso (`#65B5FF`) e superfícies claras em branco azulado (`#F1F5FC`). **Archivo Black** dá peso aos títulos e indicadores; **IBM Plex Sans** mantém os textos legíveis; **JetBrains Mono** identifica códigos e pequenas legendas técnicas. Painéis com recortes, cantos assimétricos e um circuito abstrato em SVG compõem a identidade. O segmento percorre o circuito; os veículos mudam de escala e inclinação no carrossel; o dock e as etapas do agendamento respondem com animações. As animações Reanimated respeitam a preferência de movimento reduzido do sistema. Verde, ocre e vermelho preservam o significado dos estados. Referências de contexto: [app da Ford](https://www.fromtheroad.ford.com/us/en/articles/2025/redesigned-essential-your-new-ford-and-lincoln-apps) e [IBM Plex](https://www.ibm.com/plex/). Os tokens e componentes estão na tela **Profile → Design system**. A galeria acima registra essa revisão visual. Os assets do ícone e da abertura também usam a paleta azul e estão incluídos no novo build nativo de desenvolvimento.
 
 ---
 
@@ -337,7 +347,7 @@ Azul Ford (`#00095B`) como âncora, um único acento quente — o laranja "Code 
 
 Pipeline **adaptado do projeto `troca`** (`frontend/troca-mobile`): mesma ideia — um job `verify` que serve de portão, PRs de promoção abertos automaticamente e build EAS — reduzida de três ambientes (`dev → hom → main`) para **dois** (`develop → main`).
 
-> **Status:** escrito e **validado estaticamente** (`actionlint` sem problemas; o `verify` foi reproduzido num container Node 22, ver [§9](#9-qualidade-e-verificação)). **O fluxo real não foi executado**: o repositório não tem remoto GitHub configurado e nenhum build EAS foi disparado.
+> Repositório: [gh-johnny/uni-year3-mobile-sprint3](https://github.com/gh-johnny/uni-year3-mobile-sprint3). Projeto EAS: [beo-johnny/pitlane](https://expo.dev/accounts/beo-johnny/projects/pitlane), vinculado em `app.json`. O `verify` já foi executado no GitHub; os builds EAS exigem `EXPO_TOKEN` nos secrets do repositório. A promoção para `main` depende do APK de desenvolvimento concluído.
 
 ### Fluxo
 
@@ -386,16 +396,16 @@ Comportamentos deliberados: `concurrency` cancela execuções antigas da mesma b
 
 Um build do EAS gera **um** formato por perfil (o `buildType`), por isso "AAB + APK" são dois jobs no workflow de produção.
 
-### Configuração única (checklist antes do primeiro push)
+### Configuração do repositório e das esteiras
 
-1. **Branches:** `main` como padrão. A `develop` já existe localmente (criada a partir da `main`); ao criar o repositório: `git remote add origin <url> && git push -u origin main develop`.
+1. **Branches:** `main` é a default; `develop` é a branch de integração. Alterações partem de uma branch semântica e chegam às duas por PR, seguindo os gates acima.
 2. **Actions → permissões:** _Settings → Actions → General → Workflow permissions_: **"Allow GitHub Actions to create and approve pull requests"** (em organização, habilitar também no nível da org — foi exatamente o bloqueio que o `troca` encontrou: `GitHub Actions is not permitted to create or approve pull requests`).
 3. **Secrets:**
    - `EXPO_TOKEN` — token do expo.dev (obrigatório para `build-dev`/`build-prod`);
    - `PR_BOT_TOKEN` — PAT (ou GitHub App) com _Pull requests: read/write_. **Por quê:** PRs abertos com o `GITHUB_TOKEN` padrão _não disparam_ outros workflows, então o PR nasceria sem checks. Sem o secret o pipeline ainda funciona (cai no `github.token`), mas o PR não terá o `verify`.
 4. **Environments** `development` e `production` (em _Settings → Environments_); em `production`, marque _Required reviewers_ para exigir aprovação antes do build de produção.
 5. **Branch protection** em `develop` e `main`: exigir PR e os checks `semantic branch name` e `verify (typecheck · lint · test · doctor · build)`; bloquear push direto.
-6. **Expo:** `eas login` + `eas init` (vincula o `projectId` — o `app.json` ainda não o tem); a keystore Android é gerada no primeiro build (`eas credentials`). Não é preciso conectar o app do GitHub ao Expo: quem dispara o build é o próprio CI.
+6. **Expo:** `app.json` já contém `owner` e `extra.eas.projectId`. Para administrar o projeto: `npx eas-cli login`; credenciais Android: `npx eas-cli credentials --platform android`. Não é preciso conectar o app do GitHub ao Expo: quem dispara o build é o próprio CI.
 
 ### Diferenças em relação ao `troca`
 

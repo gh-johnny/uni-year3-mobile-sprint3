@@ -34,14 +34,14 @@ export function Badge({ label, tone = 'neutral', icon, variant = 'soft', size = 
         gap: 4,
         paddingHorizontal: small ? 7 : 10,
         height: small ? 22 : 26,
-        borderRadius: theme.radius.pill,
+        borderRadius: theme.radius.xs,
         backgroundColor: background,
         borderWidth: variant === 'outline' ? 1 : 0,
         borderColor: colors.solid,
       }}
     >
       {icon ? <Icon name={icon} size={small ? 12 : 14} color={foreground} strokeWidth={2} /> : null}
-      <Text variant="overline" style={{ color: foreground, fontSize: small ? 10.5 : 11.5, letterSpacing: 1 }} numberOfLines={1}>
+      <Text variant="callout" style={{ color: foreground, fontSize: small ? 11 : 12, lineHeight: 16 }} numberOfLines={1}>
         {label}
       </Text>
     </View>

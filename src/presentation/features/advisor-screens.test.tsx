@@ -34,7 +34,7 @@ describe('PulseScreen', () => {
     await renderWithServices(<PulseScreen />, services);
 
     expect(await screen.findByTestId('pulse-hero')).toBeOnTheScreen();
-    expect(screen.getByTestId('share-gauge')).toBeOnTheScreen();
+    expect(screen.getByTestId('share-value')).toHaveTextContent(/\d+(\.\d+)?%/);
     expect(screen.getByTestId('share-delta')).toHaveTextContent(/pts vs network/);
     expect(screen.getByTestId('trend-chart')).toBeOnTheScreen();
     expect(screen.getByTestId('breakdown-bars')).toBeOnTheScreen();
