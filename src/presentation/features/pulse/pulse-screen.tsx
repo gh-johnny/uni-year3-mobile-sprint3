@@ -4,7 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import type { ShareDimension } from '@/domain/analytics/service-share-calculator';
 
-import { AnimatedNumber, Badge, BarList, Card, Gauge, Icon, Screen, ScreenHeader, SectionHeader, SegmentedControl, Text, TrendChart, useTheme } from '../../design-system';
+import { AnimatedNumber, Badge, BarList, Card, Circuit, CornerCut, Icon, Screen, ScreenHeader, SectionHeader, SegmentedControl, Text, TrendChart, useTheme } from '../../design-system';
 import { useI18n } from '../../hooks/use-i18n';
 import { useResult } from '../../hooks/use-result';
 import { PULSE_DIMENSIONS, PulsePresenter } from '../../presenters/pulse-presenter';
@@ -36,58 +36,41 @@ export function PulseScreen() {
 
   if (!pulse.data) return <QueryFallback state={pulse} withTabBar />;
   const view = PulsePresenter.present(pulse.data, i18n);
-  const onBrand = theme.colors.onBrand;
-  const ownColor = theme.colors.accent;
+  const ownColor = theme.colors.primary;
   const networkColor = theme.colors.textSubtle;
 
   return (
     <Screen withTabBar refreshing={pulse.refreshing} onRefresh={pulse.reload} testID="pulse-screen">
       <ScreenHeader eyebrow={view.eyebrow} title={t('pulse.title')} accessory={<SyncPill />} />
 
-      <Animated.View entering={FadeInDown.duration(380)} style={{ padding: 20, gap: 16, borderRadius: theme.radius.xl, backgroundColor: theme.colors.brand }} testID="pulse-hero">
-        <Text variant="overline" style={{ color: onBrand, opacity: 0.6 }} numberOfLines={1}>
+      <Animated.View entering={FadeInDown.duration(380)} style={{ padding: 22, gap: 18, borderRadius: 4, borderBottomLeftRadius: 36, backgroundColor: theme.colors.signal, overflow: 'hidden' }} testID="pulse-hero">
+        <Circuit size={170} color={theme.colors.onSignal} style={{ position: 'absolute', right: -16, top: 24, opacity: 0.25 }} />
+        <Text variant="overline" style={{ color: theme.colors.onSignal }} numberOfLines={1}>
           {view.dealerName}
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Gauge progress={view.own.progress} color={ownColor} size={148} thickness={10} redlineFrom={0.9} testID="share-gauge">
-            <AnimatedNumber value={view.own.progress * 100} format={(value) => `${f.number(value, 1)}%`} variant="metric" style={{ color: onBrand, fontSize: 28 }} />
-            <Text variant="overline" style={{ color: onBrand, opacity: 0.6, fontSize: 10 }}>
-              {t('pulse.you')}
-            </Text>
-          </Gauge>
-          <View style={{ flex: 1, gap: 10 }}>
-            <Badge label={view.own.delta} tone={view.own.deltaTone} variant="solid" icon={view.own.deltaTone === 'success' ? 'trendUp' : 'trendDown'} testID="share-delta" />
-            <View style={{ gap: 2 }}>
-              <Text variant="overline" style={{ color: onBrand, opacity: 0.6 }}>
-                {t('pulse.network')}
-              </Text>
-              <Text variant="title2" style={{ color: onBrand }}>
-                {view.network.value}
-              </Text>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 16 }}>
-              <View>
-                <Text variant="overline" style={{ color: onBrand, opacity: 0.6, fontSize: 10 }}>
-                  {t('pulse.retained')}
-                </Text>
-                <Text variant="title3" style={{ color: onBrand }}>
-                  {view.own.retained}
-                </Text>
-              </View>
-              <View>
-                <Text variant="overline" style={{ color: onBrand, opacity: 0.6, fontSize: 10 }}>
-                  {t('pulse.park')}
-                </Text>
-                <Text variant="title3" style={{ color: onBrand }}>
-                  {view.own.park}
-                </Text>
-              </View>
-            </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text variant="caption" style={{ color: theme.colors.onSignal }}>{t('pulse.you')}</Text>
+            <AnimatedNumber value={view.own.progress * 100} format={(value) => `${f.number(value, 1)}%`} variant="metric" style={{ color: theme.colors.onSignal, fontSize: 58, lineHeight: 64, letterSpacing: -2.8 }} numberOfLines={1} adjustsFontSizeToFit testID="share-value" />
           </View>
         </View>
-        <Text variant="caption" style={{ color: onBrand, opacity: 0.6 }}>
+        <Badge label={view.own.delta} tone={view.own.deltaTone} icon={view.own.deltaTone === 'success' ? 'trendUp' : 'trendDown'} testID="share-delta" />
+        <View style={{ flexDirection: 'row', gap: 12, paddingTop: 16, borderTopWidth: 1, borderTopColor: `${theme.colors.onSignal}33` }}>
+          {[
+            { label: t('pulse.network'), value: view.network.value },
+            { label: t('pulse.retained'), value: view.own.retained },
+            { label: t('pulse.park'), value: view.own.park },
+          ].map((stat) => (
+            <View key={stat.label} style={{ flex: 1, gap: 4 }}>
+              <Text variant="caption" style={{ color: theme.colors.onSignal }}>{stat.label}</Text>
+              <Text variant="title3" style={{ color: theme.colors.onSignal }} tabular numberOfLines={1} adjustsFontSizeToFit>{stat.value}</Text>
+            </View>
+          ))}
+        </View>
+        <Text variant="caption" style={{ color: theme.colors.onSignal }}>
           {t('pulse.definition')}
         </Text>
+        <CornerCut color={theme.colors.background} size={28} />
       </Animated.View>
 
       <View style={{ gap: 12 }}>

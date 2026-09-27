@@ -14,7 +14,7 @@ type VariantStyle = { background: string; foreground: string; border: string };
 
 /** Variant → colours. Adding a variant is one entry here, nothing else changes. */
 const VARIANTS: Record<ButtonVariant, (theme: Theme) => VariantStyle> = {
-  primary: ({ colors }) => ({ background: colors.primary, foreground: colors.onPrimary, border: colors.primary }),
+  primary: ({ colors }) => ({ background: colors.signal, foreground: colors.onSignal, border: colors.signal }),
   secondary: ({ colors }) => ({ background: colors.brand, foreground: colors.onBrand, border: colors.brand }),
   accent: ({ colors }) => ({ background: colors.accent, foreground: colors.onAccent, border: colors.accent }),
   outline: ({ colors }) => ({ background: 'transparent', foreground: colors.text, border: colors.borderStrong }),
@@ -26,7 +26,7 @@ const VARIANTS: Record<ButtonVariant, (theme: Theme) => VariantStyle> = {
 const SIZES: Record<ButtonSize, { height: number; paddingHorizontal: number; icon: number; gap: number }> = {
   sm: { height: 36, paddingHorizontal: 14, icon: 16, gap: 6 },
   md: { height: 48, paddingHorizontal: 18, icon: 18, gap: 8 },
-  lg: { height: 58, paddingHorizontal: 22, icon: 20, gap: 10 },
+  lg: { height: 54, paddingHorizontal: 22, icon: 20, gap: 10 },
 };
 
 export type ButtonProps = {
@@ -79,7 +79,9 @@ export function Button({
           paddingHorizontal: metrics.paddingHorizontal,
           backgroundColor: colors.background,
           borderColor: colors.border,
-          borderRadius: size === 'lg' ? theme.radius.lg : theme.radius.md,
+          borderRadius: theme.radius.md,
+          borderTopRightRadius: variant === 'primary' ? 22 : theme.radius.md,
+          borderBottomLeftRadius: variant === 'primary' ? 22 : theme.radius.md,
           opacity: disabled ? 0.45 : 1,
         },
         fullWidth && styles.fullWidth,
@@ -94,7 +96,7 @@ export function Button({
             {icon ? <Icon name={icon} size={metrics.icon} color={colors.foreground} /> : null}
             <Text
               variant={size === 'sm' ? 'callout' : 'bodyStrong'}
-              style={{ color: colors.foreground, letterSpacing: 0.2 }}
+              style={{ color: colors.foreground, flexShrink: 1 }}
               numberOfLines={1}
             >
               {label}
@@ -108,7 +110,7 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  base: { borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  base: { borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   fullWidth: { alignSelf: 'stretch' },
 });

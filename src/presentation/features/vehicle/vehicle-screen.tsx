@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { Badge, Button, Card, EmptyState, Gauge, IconButton, ListItem, PitStripe, Screen, SectionHeader, Text, useTheme } from '../../design-system';
+import { Badge, Button, Card, Circuit, CornerCut, EmptyState, Gauge, IconButton, ListItem, Screen, SectionHeader, Text, Theme, useTheme } from '../../design-system';
 import { useI18n } from '../../hooks/use-i18n';
 import { useResult } from '../../hooks/use-result';
 import { VehiclePresenter } from '../../presenters/vehicle-presenter';
@@ -24,8 +24,8 @@ export function VehicleScreen() {
 
   if (!detail.data) return <QueryFallback state={detail} />;
   const view = VehiclePresenter.present(detail.data, i18n, new Map(detail.data.dealer ? [[detail.data.dealer.id, detail.data.dealer.name]] : []), container.clock.now());
-  const tone = theme.tone(view.health.tone);
-  const onBrand = theme.colors.onBrand;
+  const tone = Theme.for('dark').tone(view.health.tone);
+  const foreground = theme.colors.onBrand;
   const isOwner = user.customerId === detail.data.vehicle.customerId;
 
   return (
@@ -37,45 +37,47 @@ export function VehicleScreen() {
 
       <Animated.View
         entering={FadeInDown.duration(380)}
-        style={{ padding: 20, gap: 16, borderRadius: theme.radius.xl, backgroundColor: theme.colors.brand, overflow: 'hidden' }}
+        style={{ padding: 20, gap: 20, borderRadius: 4, borderBottomLeftRadius: 36, backgroundColor: theme.isDark ? theme.colors.surface : theme.colors.brand, overflow: 'hidden' }}
       >
-        <View style={{ gap: 2 }}>
-          <Text variant="overline" style={{ color: onBrand, opacity: 0.6 }}>
+        <Circuit size={156} style={{ position: 'absolute', top: 4, right: -38, opacity: 0.4 }} />
+        <View style={{ gap: 6, paddingRight: 40 }}>
+          <Text variant="overline" style={{ color: foreground, opacity: 0.65 }}>
             {view.model}
           </Text>
-          <Text variant="hero" style={{ color: onBrand, fontSize: 44, lineHeight: 46 }} numberOfLines={1} adjustsFontSizeToFit>
-            {view.title.toUpperCase()}
+          <Text variant="hero" style={{ color: theme.colors.signal, fontSize: 40, lineHeight: 44 }} numberOfLines={1} adjustsFontSizeToFit>
+            {view.title}
           </Text>
-          <Text variant="caption" style={{ color: onBrand, opacity: 0.7 }}>
+          <Text variant="caption" style={{ color: foreground, opacity: 0.75 }}>
             {view.subtitle}
           </Text>
         </View>
-        <PitStripe height={5} opacity={0.9} />
+        <View style={{ height: 1, backgroundColor: foreground, opacity: 0.15 }} />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-          <Gauge progress={view.health.progress} color={tone.solid} size={112} thickness={9} redlineFrom={0.8}>
-            <Text variant="metric" style={{ color: onBrand, fontSize: 24 }}>
+          <Gauge progress={view.health.progress} color={tone.solid} size={112} thickness={7} inverse>
+            <Text variant="metric" style={{ color: foreground, fontSize: 24 }}>
               {view.health.percent}
             </Text>
           </Gauge>
           <View style={{ flex: 1, gap: 10 }}>
             <View style={{ gap: 2 }}>
-              <Text variant="overline" style={{ color: onBrand, opacity: 0.6 }}>
+              <Text variant="caption" style={{ color: foreground, opacity: 0.65 }}>
                 {t('health.nextService')}
               </Text>
-              <Text variant="callout" style={{ color: onBrand }}>
+              <Text variant="callout" style={{ color: foreground }}>
                 {view.health.detail}
               </Text>
             </View>
             <View style={{ gap: 2 }}>
-              <Text variant="overline" style={{ color: onBrand, opacity: 0.6 }}>
+              <Text variant="overline" style={{ color: foreground, opacity: 0.65 }}>
                 {t('vehicle.vin')}
               </Text>
-              <Text variant="mono" style={{ color: onBrand, fontSize: 12 }} selectable numberOfLines={1} adjustsFontSizeToFit>
+              <Text variant="mono" style={{ color: foreground, opacity: 0.8, fontSize: 11 }} selectable numberOfLines={1} adjustsFontSizeToFit>
                 {view.vin}
               </Text>
             </View>
           </View>
         </View>
+        <CornerCut color={theme.colors.background} size={24} />
       </Animated.View>
 
       {isOwner ? (

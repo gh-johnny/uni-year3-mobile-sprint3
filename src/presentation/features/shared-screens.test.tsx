@@ -195,7 +195,7 @@ describe('DesignSystemScreen', () => {
 describe('SignInScreen', () => {
   it('signs the owner in with the pre-filled demo account', async () => {
     await renderWithServices(<SignInScreen />, services);
-    expect(screen.getByText('Your Ford, always in the right hands.')).toBeOnTheScreen();
+    expect(screen.getByText(/Keep\s+moving\./)).toBeOnTheScreen();
     expect(screen.getByLabelText('E-mail').props.value).toBe('ana@pitlane.app');
 
     await userEvent.press(screen.getByTestId('sign-in'));

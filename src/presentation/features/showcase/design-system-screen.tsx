@@ -34,7 +34,7 @@ const VARIANTS: readonly ButtonVariant[] = ['primary', 'secondary', 'accent', 'o
 const SIZES: readonly ButtonSize[] = ['sm', 'md', 'lg'];
 const TONES: readonly Tone[] = ['neutral', 'primary', 'accent', 'success', 'warning', 'danger'];
 const TYPE_VARIANTS = ['hero', 'display', 'title1', 'title2', 'title3', 'body', 'callout', 'caption', 'overline', 'metric', 'mono'] as const;
-const SWATCHES = ['brand', 'primary', 'accent', 'success', 'warning', 'danger', 'surface', 'surfaceMuted', 'background', 'text'] as const;
+const SWATCHES = ['brand', 'signal', 'primary', 'accent', 'success', 'warning', 'danger', 'surface', 'surfaceMuted', 'background', 'text'] as const;
 const ICONS: readonly IconName[] = ['garage', 'history', 'pin', 'compass', 'gauge', 'radar', 'calendar', 'wrench', 'drop', 'disc', 'tire', 'pulse', 'qr', 'scan', 'shield', 'bolt', 'sparkle', 'sync'];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -97,7 +97,7 @@ export function DesignSystemScreen() {
       <Section title={t('showcase.buttons')}>
         <View style={{ gap: 10 }}>
           {VARIANTS.map((variant) => (
-            <View key={variant} style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+            <View key={variant} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
               {SIZES.map((size) => (
                 <Button key={size} label={variant} variant={variant} size={size} />
               ))}

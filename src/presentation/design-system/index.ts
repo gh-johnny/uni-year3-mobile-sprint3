@@ -7,6 +7,7 @@ export { Card } from './components/card';
 export { BarList, TrendChart } from './components/charts';
 export type { BarDatum, ChartSeries } from './components/charts';
 export { Chip } from './components/chip';
+export { Circuit, CornerCut } from './components/circuit';
 export { ConfirmDialog, ToastHost } from './components/feedback';
 export { Gauge } from './components/gauge';
 export { Icon } from './components/icon';

@@ -56,27 +56,28 @@ export function Screen({ withTabBar, scroll = true, refreshing, onRefresh, conte
 }
 
 export function ScreenHeader({ eyebrow, title, accessory }: { eyebrow?: string; title: string; accessory?: ReactNode }) {
+  const theme = useTheme();
   return (
-    <Animated.View entering={FadeInDown.duration(420)} style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
-      <View style={{ flex: 1, gap: 4 }}>
+    <Animated.View entering={FadeInDown.duration(420)} style={{ gap: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: theme.colors.border }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
         {eyebrow ? (
-          <Text variant="overline" color="primary">
+          <Text variant="overline" color="textMuted" style={{ flex: 1 }}>
             {eyebrow}
           </Text>
         ) : null}
-        <Text variant="display" accessibilityRole="header">
-          {title}
-        </Text>
+        {accessory}
       </View>
-      {accessory}
+      <Text variant="display" accessibilityRole="header">{title}</Text>
     </Animated.View>
   );
 }
 
 export function SectionHeader({ title, action }: { title: string; action?: ReactNode }) {
+  const theme = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: -4 }}>
-      <Text variant="overline" color="textMuted" accessibilityRole="header">
+      <View style={{ width: 5, height: 16, marginRight: 9, backgroundColor: theme.colors.primary, transform: [{ skewX: '-18deg' }] }} />
+      <Text variant="bodyStrong" accessibilityRole="header" style={{ flex: 1 }}>
         {title}
       </Text>
       {action}
@@ -149,7 +150,8 @@ export function StatTile({ label, value, caption, tone = 'neutral', icon }: { la
         flex: 1,
         gap: 6,
         padding: theme.space.lg,
-        borderRadius: theme.radius.lg,
+        borderRadius: theme.radius.sm,
+        borderTopRightRadius: theme.radius.xl,
         backgroundColor: theme.colors.surface,
         borderWidth: 1,
         borderColor: theme.colors.border,

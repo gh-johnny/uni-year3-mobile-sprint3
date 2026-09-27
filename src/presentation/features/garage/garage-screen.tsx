@@ -77,17 +77,18 @@ function OfferCard({ offer, onPress }: { offer: OfferViewModel; onPress: () => v
         width: 236,
         padding: 16,
         gap: 10,
-        borderRadius: theme.radius.lg,
+        borderRadius: theme.radius.sm,
+        borderTopRightRadius: theme.radius.xl,
         backgroundColor: theme.colors.surface,
         borderWidth: 1,
         borderColor: theme.colors.border,
       }}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View style={{ width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.accentSoft }}>
-          <Icon name={offer.icon} size={19} color={theme.colors.onAccentSoft} />
+        <View style={{ width: 36, height: 36, borderRadius: theme.radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.colors.surfaceMuted }}>
+          <Icon name={offer.icon} size={19} color={theme.colors.textMuted} />
         </View>
-        <Badge label={offer.badge} tone="accent" variant="solid" />
+        <Badge label={offer.badge} tone="neutral" />
       </View>
       <Text variant="title3" numberOfLines={1}>
         {offer.title}
@@ -227,14 +228,14 @@ export function GarageScreen() {
         {view.vehicles.length > 1 ? (
           <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 }}>
             {view.vehicles.map((vehicle, index) => (
-              <View key={vehicle.id} style={{ width: index === active ? 18 : 6, height: 6, borderRadius: 3, backgroundColor: index === active ? theme.colors.accent : theme.colors.borderStrong }} />
+              <View key={vehicle.id} style={{ width: index === active ? 18 : 6, height: 4, borderRadius: 2, backgroundColor: index === active ? theme.colors.primary : theme.colors.borderStrong }} />
             ))}
           </View>
         ) : null}
       </Animated.View>
       {selected ? <VehicleDetails vehicle={selected} /> : null}
       <Card variant="filled">
-        <ListItem title={i18n.t('garage.addVehicle')} subtitle={i18n.t('garage.addVehicleHint')} icon="scan" iconTone="accent" chevron onPress={() => router.push('/scan')} testID="scan-cta" />
+        <ListItem title={i18n.t('garage.addVehicle')} subtitle={i18n.t('garage.addVehicleHint')} icon="scan" iconTone="primary" chevron onPress={() => router.push('/scan')} testID="scan-cta" />
       </Card>
     </Screen>
   );

@@ -33,7 +33,7 @@ export function Card({ variant = 'outlined', padding, onPress, style, children, 
     },
     brand: { backgroundColor: colors.brand, borderWidth: 1, borderColor: colors.brand },
   }[variant];
-  const base: StyleProp<ViewStyle> = [{ borderRadius: theme.radius.lg, padding: padding ?? theme.space.lg, overflow: 'hidden' }, look, style];
+  const base: StyleProp<ViewStyle> = [{ borderRadius: theme.radius.sm, borderBottomLeftRadius: theme.radius.xl, padding: padding ?? theme.space.lg, overflow: 'hidden' }, look, style];
 
   if (onPress) {
     return (
